@@ -1,9 +1,10 @@
-#' netwalk
+#' unetwalk
 #' @title
 #' @description
-#" 
+#' @param 
+#' @param
 #' 
-#' @name netwalk
+#' @name unetwalk
 #' @docType package
 #' @export
 #' @examples
@@ -188,6 +189,18 @@ unetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
  
 }    
 
+
+#' net.nbi
+#' @title
+#' @description
+#' @param 
+#' @param
+#' 
+#' @name net.nbi
+#' @docType package
+#' @export
+#' @examples
+
 net.nbi <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","matrix")) {
     
     format <- match.arg(format)
@@ -239,6 +252,18 @@ net.nbi <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","m
     rM <- W %*% adjM
     return (rM)
 }
+
+
+#' Binetwalk
+#' @title
+#' @description
+#' @param 
+#' @param
+#' 
+#' @name Binetwalk
+#' @docType package
+#' @export
+#' @examples
 
 Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
     
@@ -368,6 +393,18 @@ Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     }
     
 }
+
+#' sig.net
+#' @title
+#' @description
+#' @param 
+#' @param
+#' 
+#' @name sig.net
+#' @docType package
+#' @export
+#' @examples
+
 
 sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.adjust.method=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr"), parallel=TRUE, multicores=NULL, verbose=T)
 {
@@ -532,3 +569,5 @@ sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.
                    cgraph  = cgraph)
     invisible(result)
 }
+
+vis.net <- function()

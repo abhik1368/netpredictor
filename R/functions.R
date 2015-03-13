@@ -1,14 +1,8 @@
-#' bi.netwalk
-#' @title
-#' @description
-#" 
+#' jaccard.sim
+#' @param
 #' 
-#' @name bi.netwalk
-#' @docType package
-#' @export
-#' @examples
-#' 
-#' 
+
+
 library(utils)
 library(igraph)
 
@@ -27,6 +21,9 @@ jaccard.sim <- function(df){
     return (Matrix(s))
 }
 
+#' colNorm
+#' @param
+#' 
 
 colNorm <- function(PTmatrix){
     if (ncol(PTmatrix) > 1){
@@ -43,6 +40,12 @@ colNorm <- function(PTmatrix){
     
 }
 
+#' t.mat
+#' @param
+#' @param
+#' @param
+#' @param
+#' @description
 
 
 t.mat<-function(g1,s1,s2,normalise){
@@ -104,13 +107,15 @@ t.mat<-function(g1,s1,s2,normalise){
     }
 }
 
-
+#' rwr
+#' @param
+#' @param
+#' @param
+#' @param
+#' @description
 
 rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
     # run on sparse matrix package
-    library(doMC)
-    library(parallel)
-    library(foreach)
     
     flag_parallel <- F
     stop_delta <- 1e-07     
