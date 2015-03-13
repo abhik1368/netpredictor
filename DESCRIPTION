@@ -1,0 +1,13 @@
+Package: NetWalk
+Type: Package
+Title: Prediction of Missing links using Various Network Algorithms
+Version: 1.0
+Date: 2015-03-06
+Author: Abhik Seal 
+Depends: R (>= 3.1.3), igraph,utils
+Maintainer: Abhik Seal <abhik1368@gmail.com>
+Description: Prediction of Missing links in Networks .
+License: MIT
+imports: graph, Rgraphviz, Matrix
+Suggests:foreach, doMC,parallel
+
