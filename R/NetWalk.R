@@ -406,7 +406,7 @@ Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
 #' @examples
 
 
-sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.adjust.method=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr"), parallel=TRUE, multicores=NULL, verbose=T)
+sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.adjust.method=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr"), parallel=TRUE, multicores=NULL, verbose=T)
 {
     library(igraph)
     startT <- Sys.time()
@@ -465,7 +465,7 @@ sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.
     ind2 <- match(colnames(Amatrix), rnames)    
     if(length(ind1[!is.na(ind1)])!=length(rownames(g.incident)) && length(ind2[!is.na(ind2)])!=length(colnames(g.incident))) {
         stop("The function must require input Affinity matrix (Amatrix) has the same names (both columns and rows) as the input graph.\n")
-    }
+    } 
     
     
     PTmatrix <- Amatrix[ind1[!is.na(ind1)],ind2]  
@@ -474,13 +474,13 @@ sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.
     
     ####################################################
     
-    obs <- as.matrix(t(as.matrix(PTmatrix)) %*% PTmatrix)
+    obs <- as.matrix(t(PTmatrix)) %*% PTmatrix)
     B <- num.permutation
     if(verbose){
         message(sprintf("Third, generate the distribution of contact strength based on %d permutations on nodes respecting %s (%s)...", B, permutation, as.character(Sys.time())), appendLF=T)
     }
     
-    ###### parallel computing
+    
     f <- function(){
         pb <- txtProgressBar(min=1, max=num.permutation-1,style=3)
         count <- 0
@@ -492,6 +492,7 @@ sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.
             c(...)
         }
     } 
+    ###### parallel computing
     flag_parallel <- F
     if(parallel==TRUE){
         
@@ -570,4 +571,3 @@ sig.net <- function(iseeds, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.
     invisible(result)
 }
 
-vis.net <- function()

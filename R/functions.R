@@ -168,3 +168,133 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
             return(PTmatrix)
         }
 }
+
+
+get.comm <- function(g,num.nodes = 3,calgo = walktrap.community){
+    if (class(g)!= "igraph"){
+        stop("The function must apply to 'igraph' object.\n")
+    }
+    
+    ## decompose the graph 
+    gps <- decompose.graph(g,min.vertices=num.nodes)
+    # Create a list to store list of graphs for community identification
+    result <- list()
+    nc<- sapply(gps, vcount)
+    # Get the indexes which has more than num.nodes
+    indx <- which(nc > num.nodes)
+    
+    
+    if (length(indx) < 1){
+        stop("No communities found less than num.nodes")
+    }
+    j <- 1
+    for (i in indx){
+         
+        comm <- calgo(gps[[i]],weights=E(gps[[i]])$weight)    
+        result[[j]] = list(community = comm,
+                      cgraph = gps[[i]]) 
+        j <- j+1
+    }   
+    return (result)
+}
+
+
+mulplot <- function(gc,cols=3) {
+    require(grid)
+    require(igraph)
+    # Make a list from the ... arguments and plotlist
+    #plots <- c(list(...), plotlist)
+    #grid.newpage()
+    numPlots = length(gc)
+    r = ceiling(numPlots/cols)
+    # If layout is NULL, then use 'cols' to determine layout
+
+#     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+#                          ncol = cols, nrow = ceiling(numPlots/cols))
+    if (numPlots==1) {
+        
+        plot(gc[[1]]$community, gc[[1]]$cgraph)
+        
+    } else {
+#         # Set up the page
+#         grid.newpage()
+#         pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+#         
+#         # Make each plot, in the correct location
+#         for (i in 1:numPlots) {
+#             # Get the i,j matrix positions of the regions that contain this subplot
+#             matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+#             #p <- plot(gc$community[[i]], gc$cgraph[[i]])
+#             print(plot(gc[[i]]$community, gc[[i]]$cgraph), vp = viewport(layout.pos.row = matchidx$row,
+#                                             layout.pos.col = matchidx$col))
+        
+        par(mfrow = c(ceiling(numPlots/cols), cols))
+        par(cex = 0.6)
+        par(mar = c(4, 4, 2, 0.5), oma = c(2, 2, 2, 2))
+    
+        for (i in 1:numPlots){
+            plot(gc[[i]]$community, gc[[i]]$cgraph,
+                 layout=layout.fruchterman.reingold,
+                 vertex.label.family="sans",
+                 vertex.color= rainbow(10, .8, .8, alpha=.8))
+        }
+        
+    }
+    par(mfrow = c(ceiling(numPlots/cols), cols))
+    mtext("Significant Communties", cex=1,font=2, col="Black", outer=TRUE)
+}
+
+
+# ####################################
+# graphs <- decompose.graph(g)
+# largest <- sapply(graphs, vcount)
+# indx <- which(largest > 3)
+# plot(graphs[[indx[1]]], layout=layout.fruchterman.reingold)
+# wc <- walktrap.community(graphs[[3]])
+# #wc <- fastgreedy.community(graphs[[3]])
+# #wc<-edge.betweenness.community(graphs[[3]])
+# #wc <- label.propagation.community(graphs[[3]])
+# plot.igraph(ig, layout=glayout, 
+#             vertex.frame.color=vertex.frame.color,
+#             vertex.size=vertex.size, 
+#             vertex.color=vertex.color,
+#             vertex.shape=vertex.shape,
+#             vertex.label=vertex.label,
+#             vertex.label.cex=vertex.label.cex, 
+#             vertex.label.dist=vertex.label.dist, 
+#             vertex.label.color=vertex.label.color, 
+#             vertex.label.family="sans",
+#             ...)
+# 
+# 
+# plot(wc, graphs[[3]])
+
+
+heatplot <- function(g,Z,cols=5){
+    library(gplots)
+    require(igraph)
+    cols=5
+    ngraphs <- length(gp)
+    r = ceiling(ngraphs/cols)
+    par(mfrow = c(ceiling(ngraphs/cols), cols))
+    par(cex = 0.6)
+    par(mar = c(4, 4, 2, 0.5), oma = c(2, 2, 2, 2)) 
+    g=gp
+    for ( i in 1:ngraphs){
+        i= 1
+        x <- g[[i]]$cgraph
+        M <- as.matrix(get.adjacency(x))
+        adjM <- Z$pval        
+        i <- match(rownames(M), rownames(adjM))
+        j <- match(colnames(M), colnames(adjM))
+        M <- adjM[i,j]       
+        for (i in 1:ngraphs){
+            heatmap.2(M, Rowv=NA, Colv=NA,col =redgreen(75), scale="column")
+        }
+        
+    }
+    par(mfrow = c(ceiling(ngraphs/cols), cols))
+    mtext("Significant Communties", cex=1,font=2, col="Black", outer=TRUE)
+    
+}
+
