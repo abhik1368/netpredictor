@@ -1,6 +1,6 @@
-\name{NetWalk-package}
-\alias{NetWalk-package}
-\alias{NetWalk}
+\name{netpredictor-package}
+\alias{netpredictor-package}
+\alias{netpredictor}
 \docType{package}
 \title{
 What the package does (short line)

@@ -1,17 +1,33 @@
-#' unetwalk
-#' @title
-#' @description
-#' @param 
-#' @param
-#' 
-#' @name unetwalk
-#' @docType package
+#' Random walk on unipartite networks
+#' @title Perform Random walk on a Unipartite Network
+#' @description Peforms random walk with restart with preferred seed sets. If seed sets are not given then the adjacencny
+#' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
+#' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
+#' Parallalization is implemented with multicores. Parallization is done using foreach package. 
+#' @param ig : igraph object
+#' @param normalise : normalise method 
+#' @param setSeeds: vector or dataframe
+#' @param restart: restart probability parameter
+#' @param parallel: to execute in parallel either TRUE or FALSE
+#' @param multcores: Number of cores to be used when running in parallel
+#' @param Verbose: Verbose output
+#' @name uNetwalk
+#' @references  
+#' \itemize{
+#'   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
+#'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+#' }
 #' @export
 #' @examples
+#' \donttest{
+#' # Get source compound ids and source information
+#' # Using ChEMBL ID and source
+#' get.scid.sid("CHEMBL12",1)
+#' # Using drugbank id and source
+#' get.scid.sid("DB00789",2)
+#' }
 
-unetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeeds=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
-    
-    library(igraph)
+uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeeds=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) {
     
     startT <- Sys.time()
     # Stopping criteria
@@ -190,18 +206,28 @@ unetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
 }    
 
 
-#' net.nbi
-#' @title
-#' @description
-#' @param 
-#' @param
-#' 
-#' @name net.nbi
-#' @docType package
+#' Network based inference on Bipartite networks
+#' @title Network Based Inference
+#' @description Given a bipartite graph , a two phase resource transfer Information from  X(x,y,z) set of nodes gets distributed to Y set of nodes and then again goes back to resource X. 
+#' This process allows us to define a technique for the calculation of the weight matrix W.
+#' @name nbiNet
+#' @param A: Adjacency Matrix
+#' @param lamda: lamda parameter
+#' @param alpha: alpha parameter
+#' @param S: Target Similarity matrix
+#' @param S1: Chemical Similarity Matrix
+#' @param format: type of file as Adjacnency file
+#' @name nbiNet
+#' @references 
+#' \itemize{
+#' \item Cheng F, et al. Prediction of drug-target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
+#' \item Zhou T, et al. Solving the apparent diversity-accuracy dilemma of recommender systems. Proc. Natl Acad. Sci. USA 2010;107:4511-4515.
+#' \item Zhou T, et al. Bipartite network projection and personal recommendation. Phys. Rev. E Stat. Nonlin. Soft Matter Phys. 2007;76:046115.
+#' \item Blog post from Abhik Seal \url{http://data2quest.blogspot.com/2015/02/link-prediction-using-network-based.html}
+#' }
 #' @export
-#' @examples
 
-net.nbi <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","matrix")) {
+nbiNet <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","matrix")) {
     
     format <- match.arg(format)
     
@@ -254,21 +280,27 @@ net.nbi <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","m
 }
 
 
-#' Binetwalk
-#' @title
-#' @description
-#' @param 
-#' @param
-#' 
-#' @name Binetwalk
-#' @docType package
+#' Randomm walk with restart on Bipartite networks
+#' @title Bipartite Random Walk
+#' @name biNetwalk
+#' @param g1 :igraph object
+#' @param s1: Similarity matrix for targets
+#' @param s2: Similarity matrix for compounds
+#' @param normalise: Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
+#' @param setSeeds: seeds file
+#' @param file: Accepts file for seeds
+#' @param restart: restart value
+#' @param parallel: parallel performance either True or False . Parallelization is implemented using foreach.
+#' @param multicore: using multicores
+#' @references 
+#' \itemize {
+#' \item Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.
+#' \item Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.
+#' }
 #' @export
-#' @examples
 
-Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
+biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
     
-    library(igraph)
-    library(Matrix)
     startT <- Sys.time()
     # Stopping criteria
     
@@ -298,18 +330,19 @@ Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     
     
     if ("weight" %in% list.edge.attributes(g1)){
-        adjM <- get.incidence(g1, attr="weight", names=T, sparse=TRUE)
+        adjM <- get.incidence(g1, attr="weight", names=T)
         if(verbose){
-            message(sprintf("\tNotes: using weighted graph!"), appendLF=T)
+            message(sprintf("Notes: using weighted graph!"), appendLF=T)
         }
     }else{
-        adjM <- get.incidence(g1, attr=NULL, names=T, sparse=TRUE)
+        adjM <- get.incidence(g1, attr=NULL, names=T)
         if(verbose){
-            message(sprintf("\tNotes: using unweighted graph!"), appendLF=T)
+            message(sprintf("Notes: using unweighted graph!"), appendLF=T)
         }
     }
+    adjM <- as.matrix(adjM)
     # get the transition matrix
-    W = t.mat(adjM,s1,s2,normalise)
+    W = tMat(adjM,s1,s2,normalise=normalise)
     
     if(is.null(setSeeds) && is.null(file)){
         
@@ -334,7 +367,6 @@ Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
         }  
         P0matrix <- matrix(0,nrow=nrow(W),ncol=1)
         P0matrix[ind[!is.na(ind)],] <- 1 
-        
         P0matrix <- colNorm(P0matrix)
     }else{
         
@@ -394,20 +426,23 @@ Binetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     
 }
 
-#' sig.net
-#' @title
-#' @description
-#' @param 
-#' @param
-#' 
-#' @name sig.net
-#' @docType package
+#' Significance of Bipartite networks 
+#' @title Significant Network
+#' @param data: n x m Adjancency matrix of seeds or dataframe of pairs.
+#' @param g: igrah object of bipartite indcident adjacency matrix.
+#' @param Amatrix: Affinity matrix computed from biNetWalk or uNetWalk.
+#' @param num.permutation: number of permutation of Affinity matrix needed to performed.
+#' @param adjp.cutoff: pvalue cutoff 0.05 
+#' @param p.adjust.method: Adjusting the pvalue by diiferent method.It uses method from the stats package.  
+#' @param parallel: Using parallization either True or False
+#' @param multicores: If parallisation is set TRUE number of cores to perform parallel computaion.
+#' @param Verbose: For verbose output.
+#' @name Significant network
 #' @export
-#' @examples
 
 
 sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.adjust.method=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr"), parallel=TRUE, multicores=NULL, verbose=T)
-{
+{   
     library(igraph)
     startT <- Sys.time()
     
@@ -459,8 +494,6 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     colnames(P0matrix) <- rnames
     
     ## check mapping between input Affinity matrix and graph
-    print (head(rnames))
-    print (head(cnames))
     ind1 <- match(rownames(Amatrix), rownames(g.incident))
     ind2 <- match(colnames(Amatrix), rnames)    
     if(length(ind1[!is.na(ind1)])!=length(rownames(g.incident)) && length(ind2[!is.na(ind2)])!=length(colnames(g.incident))) {
@@ -474,7 +507,7 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     
     ####################################################
     
-    obs <- as.matrix(t(PTmatrix)) %*% PTmatrix)
+    obs <- as.matrix(t(PTmatrix) %*% PTmatrix)
     B <- num.permutation
     if(verbose){
         message(sprintf("Third, generate the distribution of contact strength based on %d permutations on nodes respecting %s (%s)...", B, permutation, as.character(Sys.time())), appendLF=T)

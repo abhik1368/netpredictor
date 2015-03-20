@@ -1,12 +1,5 @@
-#' jaccard.sim
-#' @param
-#' 
 
-
-library(utils)
-library(igraph)
-
-
+#' Performing jaccard similarity between two entities
 jaccard.sim <- function(df){
     a <- df %*% t(df)
     b <- df %*% (1 - t(df))
@@ -18,12 +11,10 @@ jaccard.sim <- function(df){
     diag(sim) <- 1
     s = as.matrix(sim)
     s[is.nan(s)] <- 0
-    return (Matrix(s))
+    return (s)
 }
 
-#' colNorm
-#' @param
-#' 
+#' Normalizing the matrix based on matrix columns
 
 colNorm <- function(PTmatrix){
     if (ncol(PTmatrix) > 1){
@@ -40,52 +31,53 @@ colNorm <- function(PTmatrix){
     
 }
 
-#' t.mat
-#' @param
-#' @param
-#' @param
-#' @param
-#' @description
 
+#' Get the transition matrix for a Bipartite Graph. Input a sequence similarity matrix (s1),
+#' chemical similarity matrix (s2) and drug target adjacency matrix (g1) where rows are 
+#' protein targets and columns as Drugs.
+#' @export
 
-t.mat<-function(g1,s1,s2,normalise){
+tMat <- function(g1,s1,s2,normalise="laplace"){
     g1 <- t(g1)
-    seq<-s1          ##sequence similairty matrix normalised between 0 and 1 
-    drugProt<-g1     ##drug target matrix   
-    csim<-s2         ##drug similarity matrix normalised between 0 and 1
-        
-    new.drug_drug<-as.matrix(crossprod(drugProt))    
+    seq<-(s1)          ## sequence similairty matrix normalised between 0 and 1 
+    drugProt <- as.matrix(g1)           ## drug target matrix   
+    csim<-(s2)         ## drug similarity matrix normalised between 0 and 1
+    new.drug_drug<- drugProt %*% t(drugProt)    
     
-    new.prot_prot<-as.matrix(tcrossprod(drugProt))
+    new.prot_prot<- t(drugProt) %*% drugProt
 
     #calculate drug-drug similarity based on shared proteins based on jaccard similarity            
     norm_drug <- jaccard.sim(drugProt)
 
     # Jaccard similarity of two proteins based on shared compounds
     norm_prot <- jaccard.sim(t(drugProt))
+      
     # Normalizing the matrices with equal weights
-    drug.similarity.final<-0.5*(csim)+0.5*(norm_drug)
-    prot.similarity.final<-0.5*(seq)+0.5*(norm_prot)    
- 
-    
+    drug.similarity.final<- as.matrix(0.5*(csim)+0.5*(norm_drug))
+    prot.similarity.final<- as.matrix(0.5*(seq)+0.5*(norm_prot))
+    #print (prot.similarity.final)
+    #print (rowSums(prot.similarity.final)) 
     if(normalise == "laplace"){
-        D1  <- Diagonal(x=(rowSums(drugProt))^(-0.5))
-        D2  <- Diagonal(x=(colSums(drugProt))^(-0.5))   
+        D1  <- diag(x=(rowSums(drugProt))^(-0.5))
+        D2  <- diag(x=(colSums(drugProt))^(-0.5))   
         MTD <- D1 %*% g1 %*% D2
-        D3  <- Diagonal(x=(rowSums(prot.similarity.final))^(-0.5))
-        MTT <- D3 %*% s1 %*% D3
-        D4  <- Diagonal(x=(rowSums(drug.similarity.final))^(-0.5))
-        MDD  <- D4 %*% s2 %*% D4 
-        M1<-cBind(MTT,t(MTD))
-        M2<-cBind(MTD,MDD)
-        M <- rBind(M1,M2)
+        D3  <- diag(x=(rowSums(prot.similarity.final))^(-0.5))
+        MTT <- D3 %*% seq %*% D3
+        D4  <- diag(x=(rowSums(drug.similarity.final))^(-0.5))
+        MDD  <- D4 %*% csim %*% D4 
+        print (class(MTD))
+        print (class(MTT))
+        print (class(MDD))
+        M1<-cbind(MTT,t(MTD))
+        M2<-cbind(MTD,MDD)
+        M <- rbind(M1,M2)
         M <- as.matrix(M)
         M[is.na(M)]<-0
         n =c(colnames(g1),rownames(g1))
         rownames(M) <- n
         colnames(M) <- n
         # Returning the final matrix 
-        return(Matrix(M))
+        return(M)
     }
     
     
@@ -93,9 +85,9 @@ t.mat<-function(g1,s1,s2,normalise){
         MDD <- drug.similarity.final
         MTT <- prot.similarity.final
         MTD <- drugProt
-        M1<-cBind(MTT,t(MTD))
-        M2<-cBind(MTD,MDD)
-        M <- rBind(M1,M2)
+        M1<-cbind(MTT,t(MTD))
+        M2<-cbind(MTD,MDD)
+        M <- rbind(M1,M2)
         M <- as.matrix(M)
         M[is.na(M)]<-0
         n =c(colnames(g1),rownames(g1))
@@ -103,16 +95,14 @@ t.mat<-function(g1,s1,s2,normalise){
         colnames(M) <- n
         M <- colNorm(M)
         # Returning the final matrix 
-        return(Matrix(M))
+        return(M)
     }
 }
 
-#' rwr
-#' @param
-#' @param
-#' @param
-#' @param
-#' @description
+#' performing random walk with restart both in parallel and non-parallel way.
+#' It takes the transition matrix W the initial matrix P0 matrix parameter for parallization
+#' and the number of cores to run parallelisation on. Also a restart parameter is available as r 
+#' to get better results with different datasets one needs to tune restart parameter r.
 
 rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
     # run on sparse matrix package
@@ -169,8 +159,21 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
         }
 }
 
+#' Random walk on unipartite networks
+#' @title get the communities from the given network with communuty prediction algorithm
+#' @description Peforms random walk with restart with preferred seed sets.
+#' @param g: igraph object
+#' @param num.nodes: Number of nodes to keep in the community.
+#' @param calgo: The community algorithm to use to find the communities.
+#' @name getComm
+#' @references  
+#' \itemize{
+#'   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
+#'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+#' }
+#' @export 
 
-get.comm <- function(g,num.nodes = 3,calgo = walktrap.community){
+getComm<- function(g,num.nodes = 3,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }
@@ -187,17 +190,35 @@ get.comm <- function(g,num.nodes = 3,calgo = walktrap.community){
     if (length(indx) < 1){
         stop("No communities found less than num.nodes")
     }
+    
+    community.significance.test <- function(graph, vs, ...) {
+        if (is.directed(graph)) stop("This method requires an undirected graph")
+        subgraph <- induced.subgraph(graph, vs)
+        in.degrees <- degree(subgraph)
+        out.degrees <- degree(graph, vs) - in.degrees
+        wilcox.test(in.degrees, out.degrees, ...)
+    }
+    
     j <- 1
     for (i in indx){
          
-        comm <- calgo(gps[[i]],weights=E(gps[[i]])$weight)    
+        comm <- calgo(gps[[i]],weights=E(gps[[i]])$weight)
+        mem <- data.frame(membership(comm))
+        colnames(mem)[1] <- "Members"
+        comm.sig <- community.significance.test(g,membership(comm))
         result[[j]] = list(community = comm,
-                      cgraph = gps[[i]]) 
+                           community.sig = comm.sig,
+                           cgraph = gps[[i]],
+                           members = mem) 
         j <- j+1
+        
     }   
     return (result)
 }
 
+#' plotComm
+#' @name mulplot
+#' @export
 
 mulplot <- function(gc,cols=3) {
     require(grid)
@@ -234,9 +255,11 @@ mulplot <- function(gc,cols=3) {
     
         for (i in 1:numPlots){
             plot(gc[[i]]$community, gc[[i]]$cgraph,
+                 main = paste(c("Community",i)),
                  layout=layout.fruchterman.reingold,
                  vertex.label.family="sans",
                  vertex.color= rainbow(10, .8, .8, alpha=.8))
+            
         }
         
     }
@@ -244,57 +267,105 @@ mulplot <- function(gc,cols=3) {
     mtext("Significant Communties", cex=1,font=2, col="Black", outer=TRUE)
 }
 
-
-# ####################################
-# graphs <- decompose.graph(g)
-# largest <- sapply(graphs, vcount)
-# indx <- which(largest > 3)
-# plot(graphs[[indx[1]]], layout=layout.fruchterman.reingold)
-# wc <- walktrap.community(graphs[[3]])
-# #wc <- fastgreedy.community(graphs[[3]])
-# #wc<-edge.betweenness.community(graphs[[3]])
-# #wc <- label.propagation.community(graphs[[3]])
-# plot.igraph(ig, layout=glayout, 
-#             vertex.frame.color=vertex.frame.color,
-#             vertex.size=vertex.size, 
-#             vertex.color=vertex.color,
-#             vertex.shape=vertex.shape,
-#             vertex.label=vertex.label,
-#             vertex.label.cex=vertex.label.cex, 
-#             vertex.label.dist=vertex.label.dist, 
-#             vertex.label.color=vertex.label.color, 
-#             vertex.label.family="sans",
-#             ...)
-# 
-# 
-# plot(wc, graphs[[3]])
-
-
-heatplot <- function(g,Z,cols=5){
-    library(gplots)
-    require(igraph)
-    cols=5
-    ngraphs <- length(gp)
-    r = ceiling(ngraphs/cols)
-    par(mfrow = c(ceiling(ngraphs/cols), cols))
-    par(cex = 0.6)
-    par(mar = c(4, 4, 2, 0.5), oma = c(2, 2, 2, 2)) 
-    g=gp
-    for ( i in 1:ngraphs){
-        i= 1
-        x <- g[[i]]$cgraph
-        M <- as.matrix(get.adjacency(x))
-        adjM <- Z$pval        
-        i <- match(rownames(M), rownames(adjM))
-        j <- match(colnames(M), colnames(adjM))
-        M <- adjM[i,j]       
-        for (i in 1:ngraphs){
-            heatmap.2(M, Rowv=NA, Colv=NA,col =redgreen(75), scale="column")
-        }
-        
+getDrugbanksdf <- function (id, parallel = 2) {
+    
+    if (is.null(id)){
+        stop("id parameter is null")
     }
-    par(mfrow = c(ceiling(ngraphs/cols), cols))
-    mtext("Significant Communties", cex=1,font=2, col="Black", outer=TRUE)
+    
+    URL = paste0('http://www.drugbank.ca/structures/structures/small_molecule_drugs/', id, '.sdf')   
+    SDF = getURLAsynchronous(url = URL, perform = parallel)   
+    return(SDF)
     
 }
+
+getDrugBankSmi <- function (id, parallel = 2) {
+    
+    if (is.null(id)){
+        stop("id parameter is null")
+    }
+    id = c("DB00295","DB00291","DB00545")
+    parallel = 2
+    URL = paste0('http://www.drugbank.ca/structures/structures/small_molecule_drugs/', id, '.smiles')    
+    SMILES = getURLAsynchronous(url = URL, perform = parallel)
+    smiles <- gsub("[\r\n]", "", SMILES)
+    return(smiles)
+    
+}
+
+
+getPubchemSmi <- function (id, parallel = 5) {
+    
+    if (is.null(id)){
+        stop("id parameter is null")
+    }
+    
+    URL = sprintf('https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/%s/property/CanonicalSMILES/TXT', id)    
+    SMILES = getURLAsynchronous(url = URL, perform = parallel)    
+    smiles <- gsub("[\r\n]", "", SMILES)
+    return(smles)
+    
+}
+
+getPubchemSdf <- function(id, parallel = 5){
+    if (is.null(id)){
+        stop("id parameter is null")
+    }
+    
+    SdfURL = paste0('http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=', 
+                    id, '&disopt=DisplaySDF')
+    
+    SdfTxt = getURLAsynchronous(url = SdfURL, perform = parallel)
+    
+    return(SdfTxt)
+}
+
+
+getChEMBLSmi <- function(id, parallel = 5){
+    if (is.null(id)){
+        stop("id parameter is null")
+    }
+    URL = sprintf('https://www.ebi.ac.uk/chemblws/compounds/%s.json', id)    
+    jsonTxt = getURLAsynchronous(url = URL, perform = parallel)
+    data <- fromJSON(jsonTxt)
+    smiles <- data$compound$smiles
+    smiles <- gsub("[\r\n]", "", SMILES)
+    return(smiles)
+}
+
+
+getChEMBLSdf = function (id, parallel = 5) {
+    
+    URL = paste0('https://www.ebi.ac.uk/chembldb/compound/inspect/', id)
+    MolPageTxt = getURLAsynchronous(url = URL, perform = parallel)
+    
+    n = length(id)
+    tmp1 = rep(NA, n)
+    tmp2 = rep(NA, n)
+    
+    for (i in 1:n) {
+        tmp1[i] = strsplit(MolPageTxt, 
+                           "<a href='/chembldb/download_helper/getmol/")[[1]][2]
+    }
+    
+    for (i in 1:n) {
+        tmp2[i] = strsplit(tmp1[i], "'>Download MolFile")[[1]][1]
+    }
+    
+    MolURL = paste0('https://www.ebi.ac.uk/chembldb/download_helper/getmol/', tmp2)
+    sdf = getURLAsynchronous(url = MolURL, perform = parallel)
+    
+    return(sdf)
+    
+}
+   
+### More function related to proteins needs to be added
+getSeqUniProt = function (id, parallel = 5) {
+
+    fastaURL = paste0('http://www.uniprot.org/uniprot/', id, '.fasta')    
+    fastaTxt = getURLAsynchronous(url = fastaURL, perform = parallel)    
+    return(fastaTxt)
+    
+}
+
 

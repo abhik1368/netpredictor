@@ -1,46 +1,75 @@
-#' get.candidates
-#' @title get the top rank of candidates.
-#' @description
-#" 
-#' 
-#' @name get.candidates
-#' @docType package
+#' get.candidate.graph
+#' @title get.candidata.graph
+#' @name get.candidate.graph
+#' @param file: Input seeds file must be 2 column matrix of seed nodes of a bipartite graph.
+#' A input file should be dataframe or matrix 
+#' @param affinity: Computed affinity matrix from Bipartite network.
+#' @param top: retrieving top number of results.
 #' @export
-#' @examples
-#' 
-library(igraph)
-library(utils)
 
-get.candidate.graph<- function(file=NULL,affinity=NULL,top=10){
+get.candidate.graph<- function(file=NULL,affinity=NULL,top=10,format=c("bipart","unipart")){
     
+    ## function for using 'not in' in R 
     `%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
     
-    if(is.null(file)){
-        stop("A pair file is required.. \n")
-    }
-    if (!exists("affinity")){
-        stop("Affinity data is required use bi.netwalk/netwalk to get it..\n")
-    }
-    drug.names <- as.character(unique(file$V2))
-    pairs <- data.frame()
-    for (i in 1:length(drug.names)){
-        sub.fr <- file[file$V2==drug.names[i],]
-        proteins <- as.character(sub.fr$V1)
-        ind <- which(rownames(Q) %not in% proteins)
-        candidates <- as.matrix(affinity[,i][ind[!is.na(ind)]])
-        sortedlist <- candidates[order(candidates[,1],decreasing=TRUE),]
-        result <- as.matrix(sortedlist[1:top])
-        pp <- cbind(result,drug.names[i])
-        pairs <- rbind(pairs,pp)
-    }
-    colnames(pairs)[1]<-"weight"
-    colnames(pairs)[2]<-"source"
-    pairs$target <- rownames(PP)
-    return(pairs)
+    if (match.arg(format)=="unipart"){
+        if(is.null(file)){
+            stop("A file is required..")
+        }
+        if (!exists("affinity")){
+            stop("Affinity data/matrix is required.. ")
+        }
+        cnames <- colnames(file)
+        pairs <- data.frame()
+        for (cname in cnames){
+            pnames <- rownames(file[file$cname==1,])
+            ind <- which(rownames(affinity) %not in% pnames)
+            candidates <- as.matrix(affinity[ind[!is.na(ind)],])
+            sortedlist <- candidates[order(candidates[,1],decreasing=TRUE),]
+            result <- as.matrix(sortedlist[1:top])
+            pp <- cbind(result,cname)
+            pairs <- rbind(pairs,pp)
+        }
+        print (pairs)
+        return(pairs)
+        
+    }else if (match.arg(format)=="bipart"){
+        if(is.null(file)){
+            stop("A pair file is required.. \n")
+        }
+        if (!exists("affinity")){
+            stop("Affinity data is required use bi.netwalk/netwalk to get it..\n")
+        }
+        
+        drug.names <- as.character(unique(file$V2))
+        pairs <- data.frame()
+        
+        for (i in 1:length(drug.names)){
+            sub.fr <- file[file$V2==drug.names[i],]
+            proteins <- as.character(sub.fr$V1)
+            ind <- which(rownames(affinity) %not in% proteins)
+            candidates <- as.matrix(affinity[,i][ind[!is.na(ind)]])
+            sortedlist <- candidates[order(candidates[,1],decreasing=TRUE),]
+            result <- as.matrix(sortedlist[1:top])
+            pp <- cbind(result,drug.names[i])
+            pairs <- rbind(pairs,pp)
+        }
+        
+        colnames(pairs)[1]<-"weight"
+        colnames(pairs)[2]<-"source"
+        pairs$target <- rownames(PP)
+        return(pairs)
+   }
 }
 
-# g is the igraph object
-# fileName to what name it should be saved.
+#' Export file to GML
+#' @title save GML 
+#' @description Export an igraph object to GML file which can be in Cytoscape or Gephi.
+#' @param g: igraph object
+#' @param fileName: exported file name
+#' @param title: title of the exported file name
+#' @export  
+
 saveGML = function(g, fileName, title = "untitled") {
     attrToString = function(x) {
         m = mode(x)
@@ -96,13 +125,3 @@ saveGML = function(g, fileName, title = "untitled") {
     cat("Title \"", title, '"', file=f, sep="")
     close(f)
 }
-
-
-
-
-
-
-
-
-
-
