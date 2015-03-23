@@ -3,7 +3,7 @@
 \alias{netpredictor}
 \docType{package}
 \title{
-What the package does (short line)
+Link prediction and analysis of Bipartite Networks
 ~~ package title ~~
 }
 \description{
@@ -12,19 +12,19 @@ More about what it does (maybe more than one line)
 }
 \details{
 \tabular{ll}{
-Package: \tab NetWalk\cr
+Package: \tab netpredicter\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
 Date: \tab 2015-03-06\cr
-License: \tab What license is it under?\cr
+License: \tab MIT\cr
 }
 ~~ An overview of how to use the package, including the most important ~~
 ~~ functions ~~
 }
 \author{
-Who wrote it
+Abhik Seal
 
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Who to complain to <abhik1368@gmail.com>
 ~~ The author and/or maintainer of the package ~~
 }
 \references{

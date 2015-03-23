@@ -3,6 +3,10 @@
 \name{get.candidate.graph}
 \alias{get.candidate.graph}
 \title{get.candidata.graph}
+\usage{
+get.candidate.graph(file = NULL, affinity = NULL, top = 10,
+  format = c("bipart", "unipart"))
+}
 \arguments{
 \item{file:}{Input seeds file must be 2 column matrix of seed nodes of a bipartite graph.
 A input file should be dataframe or matrix}

@@ -125,3 +125,4 @@ saveGML = function(g, fileName, title = "untitled") {
     cat("Title \"", title, '"', file=f, sep="")
     close(f)
 }
+

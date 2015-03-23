@@ -604,3 +604,51 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     invisible(result)
 }
 
+#' Heterogenous Graph based Inference 
+#' @title  Heterogenous Graph based Inference on Bipartite Network
+#' @description Peforms random walk with restart with preferred seed sets. If seed sets are not given then the adjacencny
+#' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
+#' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
+#' Parallalization is implemented with multicores. Parallization is done using foreach package. 
+#' @param ig : igraph object
+#' @param normalise : normalise method 
+#' @param setSeeds: vector or dataframe
+#' @param restart: restart probability parameter
+#' @param parallel: to execute in parallel either TRUE or FALSE
+#' @param multcores: Number of cores to be used when running in parallel
+#' @param Verbose: Verbose output
+#' @name uNetwalk
+#' @references  
+#' \itemize{
+#'   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
+#'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+#' }
+#' @export
+#' @examples
+#' \donttest{
+#' # Get source compound ids and source information
+#' # Using ChEMBL ID and source
+#' get.scid.sid("CHEMBL12",1)
+#' # Using drugbank id and source
+#' get.scid.sid("DB00789",2)
+#' }
+#' 
+
+hgviNet <- function(g1,s1,s2,file=NULL,alpha=0.8,verbose=T) {
+    
+    startT <- Sys.time()
+    # Stopping criteria
+    
+    if (!exists('s1') || !exists('s2')){
+        stop("You must submit s1 and s2 matrices.\n")
+    }
+    
+    if (class(g1) != "igraph"){
+        stop("The function must apply to either 'igraph' object.\n")
+    }
+    
+    if (!bipartite.mapping(g1)$res){
+        stop("The function applies to bipartite graphs.\n")
+    }
+    
+}

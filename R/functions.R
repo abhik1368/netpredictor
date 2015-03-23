@@ -267,6 +267,125 @@ mulplot <- function(gc,cols=3) {
     mtext("Significant Communties", cex=1,font=2, col="Black", outer=TRUE)
 }
 
+#' Compute Degree Centrality of the Bipartite Graph
+#' @title Degree centrality for Bipartite Graphs.
+#' @description Measures graph degree centrality for bipartite graphs as well as Unipartite Graphs.The degree centrality of a vertex can be defined as fraction of incident edges over the number of all possible edges.
+#' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
+#' @param g: igraph object
+#' @references
+#' \itemize{
+#'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
+#'   }
+#' @return Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
+
+degreeCentrality <-function(g,loops=FALSE){
+    
+    if (class(g) != "igraph"){
+        stop("The function must apply to 'igraph' object.\n")
+        
+    } 
+    # if boolean vertex attribute <type> is present, calculate bipartite degree centrality, otherwise monopartite degree centrality
+    if (!is.null(V(g)$type)){
+        for (i in V(g)){
+            V(g)[i]$degreeCentrality <- degree(g,v=i)/length(V(g)[type==!V(g)[i]$type])
+        }
+        # return value vector as list item
+        return(list("Bipartite.Degree.Centrality"=V(g)$degreeCentrality))
+    }
+    else {
+        for (i in V(g)){
+            if (!loops){
+                V(g)[i]$degreeCentrality <- degree(g,v=i,loops=FALSE)/(length(V(g))-1)
+            }
+            else{
+                V(g)[i]$degreeCentrality <- degree(g,v=i,loops=TRUE)/(length(V(g)))
+            }
+        }
+        # return value vector as list item
+        return(list("Unipartite.Degree.Centrality"=V(g)$degreeCentrality))
+    }
+}
+
+
+#' Compute Graph density Bipartite Graph
+#' @title Graph Density for Bipartite graphs.
+#' @description Measures graph density  of bipartite graphs . The density captures the fraction of actual present edges over the number of all possible edges, given that multiple edges are not allowed.  
+#' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
+#' @param g: igraph object
+#' @references
+#' \itemize{
+#'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
+#'   }
+#' @return Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
+
+bgraphDensity <-function(g){
+    if (class(g) != "igraph"){
+        stop("The function must apply to 'igraph' object.\n")
+        
+    } 
+    if (!is.null(V(g)$type)){
+        # return value as list item
+        if (!is.directed(g)){
+            return(list("Density"=length(E(g))/(length(which(V(g)$type))*length(which(!V(g)$type)))))
+        }
+        else{
+            return(list("Density"=length(E(g))/(2*length(which(V(g)$type))*length(which(!V(g)$type)))))
+        }
+    }
+    else {
+        # boolean vertex attribute 'type' is required
+        warning("vertex attribute <type> is missing")
+    }
+}
+#' Closeness centrality for bipartite graphs
+#' @title Closeness centrality for bipartite graphs.
+#' @description Measures Closeness centrality of bipartite graphs . TThe closeness centrality of a vertex is inversely proportional to the total geodesic distance to all other vertices.  
+#' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
+#' @param g: igraph object
+#' @references
+#' \itemize{
+#'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
+#'   }
+#' @return Returns a list scores of closeness centrality of the nodes.
+#' 
+
+bcloseCentrality <-function(g){
+    if (class(g) != "igraph"){
+        stop("The function must apply to 'igraph' object.\n")
+        
+    } 
+    
+    if (!is.null(V(g)$type)){
+        # determine maximal raw scores for both vertex subsets
+        mrs_TRUE <- length(V(g)[type==FALSE]) + 2*length(V(g)[type==TRUE]) - 2
+        mrs_FALSE <- length(V(g)[type==TRUE]) + 2*length(V(g)[type==FALSE]) - 2
+        # get sum of all geodesic paths for each vertex
+        sp <- shortest.paths(g)
+        sp[sp==Inf] <- length(V(g))
+        rowsums_shortest_paths <- rowSums(sp)
+        # "bipartite" normalization of scores
+        for (i in V(g)){
+            if (V(g)[i]$type==TRUE){
+                V(g)[i]$closeness.centrality <- mrs_TRUE/rowsums_shortest_paths[i+1]
+            }
+            else{
+                V(g)[i]$closeness.centrality <- mrs_FALSE/rowsums_shortest_paths[i+1]
+            }
+        }
+        # return value as list
+        return(list("Bipartite.Closeness.Centrality"=V(g)$closeness.centrality))
+    }
+    else {
+        # boolean vertex attribute 'type' is required
+        warning("vertex attribute <type> is missing")
+    }
+}
+
+
+
+
+
+
 getDrugbanksdf <- function (id, parallel = 2) {
     
     if (is.null(id)){

@@ -3,6 +3,7 @@
 export(biNetwalk)
 export(get.candidate.graph)
 export(getComm)
+export(hgviNet)
 export(mulplot)
 export(nbiNet)
 export(saveGML)
