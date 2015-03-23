@@ -309,7 +309,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     }
     
     if (class(g1) != "igraph"){
-        stop("The function must apply to either 'igraph' object.\n")
+        stop("The function applies to 'igraph' object.\n")
     }
     
     if (!bipartite.mapping(g1)$res){

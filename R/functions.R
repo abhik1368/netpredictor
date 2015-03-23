@@ -159,21 +159,17 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
         }
 }
 
-#' Random walk on unipartite networks
-#' @title get the communities from the given network with communuty prediction algorithm
-#' @description Peforms random walk with restart with preferred seed sets.
+#' Get the communities in a graph
+#' @title Get communities from a graph
+#' @description Get  the communities in a graph. It First decomposes the graph into components and then uses igraph's 
+#' various community detection algorithms to detect communities in a graph. 
 #' @param g: igraph object
 #' @param num.nodes: Number of nodes to keep in the community.
 #' @param calgo: The community algorithm to use to find the communities.
-#' @name getComm
-#' @references  
-#' \itemize{
-#'   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
-#'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
-#' }
+#' @name get.Communities
 #' @export 
 
-getComm<- function(g,num.nodes = 3,calgo = walktrap.community){
+get.Communities<- function(g,num.nodes = 3,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }
@@ -212,26 +208,24 @@ getComm<- function(g,num.nodes = 3,calgo = walktrap.community){
                            members = mem) 
         j <- j+1
         
-    }   
+    }
+    class(result) <- "community"
     return (result)
 }
 
-#' plotComm
-#' @name mulplot
+#' plotting Communities 
+#' @name plot.Community
+#' @description This uses an object of getCommuntiy class and extracts parameters to plot current communities. 
 #' @export
 
-mulplot <- function(gc,cols=3) {
-    require(grid)
-    require(igraph)
-    # Make a list from the ... arguments and plotlist
-    #plots <- c(list(...), plotlist)
-    #grid.newpage()
+plot.Community <- function(gc,cols=3) {
+    
+    if (class(gc) != "community"){
+        stop("The function applies to community object.\n")
+    }
+
     numPlots = length(gc)
     r = ceiling(numPlots/cols)
-    # If layout is NULL, then use 'cols' to determine layout
-
-#     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-#                          ncol = cols, nrow = ceiling(numPlots/cols))
     if (numPlots==1) {
         
         plot(gc[[1]]$community, gc[[1]]$cgraph)
@@ -380,6 +374,48 @@ bcloseCentrality <-function(g){
         warning("vertex attribute <type> is missing")
     }
 }
+
+bBetweenCentrality <- function(g){
+    if (class(g) != "igraph"){
+        stop("The function must apply to 'igraph' object.\n")
+        
+    }     
+    if (!is.null(V(g)$type)){
+        # determine maximal raw scores for both vertex subsets
+        if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
+            mrs_TRUE <- 2*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-1)
+        }
+        else{
+            mrs_TRUE <- 0.5*length(V(g)[type==FALSE])*(length(V(g)[type==FALSE])-1)+0.5*(length(V(g)[type==TRUE])-1)*(length(V(g)[type==TRUE])-2)+(length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-1)
+        }
+        if (length(V(g)[type==TRUE])<length(V(g)[type==FALSE])){
+            mrs_FALSE <- 0.5*length(V(g)[type==TRUE])*(length(V(g)[type==TRUE])-1)+0.5*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==FALSE])-2)+(length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1)
+            
+        }
+        else{
+            mrs_FALSE <- 2*(length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1)
+        }
+        
+        # get raw betweenness centrality scores from igraph
+        betweenness_rs <- betweenness(g,directed=FALSE)
+        # "bipartite" normalization of scores
+        for (i in V(g)){
+            if (V(g)[i]$type==TRUE){
+                V(g)[i]$betweenness.centrality <- betweenness_rs[i+1]/mrs_TRUE
+            }
+            else{
+                V(g)[i]$betweenness.centrality <- betweenness_rs[i+1]/mrs_FALSE
+            }
+        }
+        # return value as list
+        return(list("Bipartite.Betweenness.Centrality"=V(g)$betweenness.centrality))
+    }
+    else {
+        # boolean vertex attribute 'type' is required
+        cat("vertex attribute <type> is missing")
+    }
+}
+
 
 
 
