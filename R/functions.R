@@ -161,6 +161,7 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
 
 #' Get the communities in a graph
 #' @title Get communities from a graph
+#' @name get.Communities
 #' @description Get  the communities in a graph. It First decomposes the graph into components and then uses igraph's 
 #' various community detection algorithms to detect communities in a graph. 
 #' @param g: igraph object
@@ -231,17 +232,6 @@ plot.Community <- function(gc,cols=3) {
         plot(gc[[1]]$community, gc[[1]]$cgraph)
         
     } else {
-#         # Set up the page
-#         grid.newpage()
-#         pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-#         
-#         # Make each plot, in the correct location
-#         for (i in 1:numPlots) {
-#             # Get the i,j matrix positions of the regions that contain this subplot
-#             matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-#             #p <- plot(gc$community[[i]], gc$cgraph[[i]])
-#             print(plot(gc[[i]]$community, gc[[i]]$cgraph), vp = viewport(layout.pos.row = matchidx$row,
-#                                             layout.pos.col = matchidx$col))
         
         par(mfrow = c(ceiling(numPlots/cols), cols))
         par(cex = 0.6)
@@ -263,6 +253,7 @@ plot.Community <- function(gc,cols=3) {
 
 #' Compute Degree Centrality of the Bipartite Graph
 #' @title Degree centrality for Bipartite Graphs.
+#' @name bi.degreeCentrality
 #' @description Measures graph degree centrality for bipartite graphs as well as Unipartite Graphs.The degree centrality of a vertex can be defined as fraction of incident edges over the number of all possible edges.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
 #' @param g: igraph object
@@ -271,38 +262,56 @@ plot.Community <- function(gc,cols=3) {
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
 #' @return Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
+#' By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
 
-degreeCentrality <-function(g,loops=FALSE){
-    
+bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
+        
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
-    } 
-    # if boolean vertex attribute <type> is present, calculate bipartite degree centrality, otherwise monopartite degree centrality
+    }
     if (!is.null(V(g)$type)){
-        for (i in V(g)){
-            V(g)[i]$degreeCentrality <- degree(g,v=i)/length(V(g)[type==!V(g)[i]$type])
-        }
-        # return value vector as list item
-        return(list("Bipartite.Degree.Centrality"=V(g)$degreeCentrality))
+        V(g)$degree <- degree(g)
+        # determine maximum degrees for each vertex set
+        max_d_TRUE <- max(V(g)[type==TRUE]$degree)
+        max_d_FALSE <- max(V(g)[type==FALSE]$degree)
+        # determine centralization for TRUE vertex subset
+        g$sm.degree.centralization.columns <-sum(max_d_TRUE - V(g)[type==TRUE]$degree)/((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1))
+        # determine centralization for FALSE vertex subset
+        g$sm.degree.centralization.rows <-sum(max_d_FALSE - V(g)[type==FALSE]$degree)/((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1))
+        # return both values as list
+        return(list("SM.bi.degreeCentrality.columns"=g$sm.degree.centralization.columns,"SM.bi.degreeCentrality.rows"=g$sm.degree.centralization.rows))
     }
     else {
-        for (i in V(g)){
-            if (!loops){
-                V(g)[i]$degreeCentrality <- degree(g,v=i,loops=FALSE)/(length(V(g))-1)
-            }
-            else{
-                V(g)[i]$degreeCentrality <- degree(g,v=i,loops=TRUE)/(length(V(g)))
-            }
-        }
-        # return value vector as list item
-        return(list("Unipartite.Degree.Centrality"=V(g)$degreeCentrality))
+        # boolean vertex attribute 'type' is required
+        cat("vertex attribute <type> is missing")
     }
+    if (!is.null(V(g)$type)){
+            
+            for (i in V(g)){
+                V(g)[i]$degreeCentrality <- degree(g,v=i)/length(V(g)[type==!V(g)[i]$type])
+            }
+            # return value vector as list item
+            return(list("bi.degreeCentrality"=V(g)$degreeCentrality))
+        }
+        else {
+            for (i in V(g)){
+                if (!loops){
+                    V(g)[i]$degreeCentrality <- degree(g,v=i,loops=FALSE)/(length(V(g))-1)
+                }
+                else{
+                    V(g)[i]$degreeCentrality <- degree(g,v=i,loops=TRUE)/(length(V(g)))
+                }
+            }
+            # return value vector as list item
+            return(list("bi.degreeCentrality"=V(g)$degreeCentrality))
+        }
 }
 
 
 #' Compute Graph density Bipartite Graph
 #' @title Graph Density for Bipartite graphs.
+#' @name bi.Density
 #' @description Measures graph density  of bipartite graphs . The density captures the fraction of actual present edges over the number of all possible edges, given that multiple edges are not allowed.  
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
 #' @param g: igraph object
@@ -310,9 +319,9 @@ degreeCentrality <-function(g,loops=FALSE){
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
-#' @return Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
+#' @return Returns a list scores of the degree Density the nodes in the rows are scored first followed by column vertices.
 
-bgraphDensity <-function(g){
+bi.Density <-function(g){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
@@ -320,10 +329,10 @@ bgraphDensity <-function(g){
     if (!is.null(V(g)$type)){
         # return value as list item
         if (!is.directed(g)){
-            return(list("Density"=length(E(g))/(length(which(V(g)$type))*length(which(!V(g)$type)))))
+            return(list("bi.Density"=length(E(g))/(length(which(V(g)$type))*length(which(!V(g)$type)))))
         }
         else{
-            return(list("Density"=length(E(g))/(2*length(which(V(g)$type))*length(which(!V(g)$type)))))
+            return(list("bi.Density"=length(E(g))/(2*length(which(V(g)$type))*length(which(!V(g)$type)))))
         }
     }
     else {
@@ -331,25 +340,61 @@ bgraphDensity <-function(g){
         warning("vertex attribute <type> is missing")
     }
 }
+
+
 #' Closeness centrality for bipartite graphs
 #' @title Closeness centrality for bipartite graphs.
-#' @description Measures Closeness centrality of bipartite graphs . TThe closeness centrality of a vertex is inversely proportional to the total geodesic distance to all other vertices.  
+#' @name bi.ClosenessCentrality
+#' @description Measures Closeness centrality of bipartite graphs . The closeness centrality of a vertex is inversely proportional to the total geodesic distance to all other vertices.  
+#' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central relative only to other vertices in the same subset.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
 #' @param g: igraph object
+#' @param SM: TRUE or FALSE 
 #' @references
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
-#' @return Returns a list scores of closeness centrality of the nodes.
+#' @return Returns a list scores of closeness centrality of the nodes.By deafult \code{SM=TRUE} which return the closeness centrality for two different sets of nodes.
 #' 
 
-bcloseCentrality <-function(g){
+bi.ClosenessCentrality <-function(g,SM=TRUE){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
-    } 
-    
+    }
     if (!is.null(V(g)$type)){
+        # determine bipartite closeness centrality scores
+        V(g)$Bipartite.Closeness.Centrality <- bipartite.closeness.centrality(g)[[1]]
+        
+        # get maximum scores
+        max_c_TRUE <- max(V(g)[type==TRUE]$Bipartite.Closeness.Centrality)
+        max_c_FALSE <- max(V(g)[type==FALSE]$Bipartite.Closeness.Centrality)
+        
+        # determine denominators for both vertex subsets
+        if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
+            denom_TRUE <- ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-2))/(2*length(V(g)[type==TRUE])-3) + ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-length(V(g)[type==FALSE])))/(length(V(g)[type==TRUE])+length(V(g)[type==FALSE])-2)
+        }
+        else{
+            denom_TRUE <- ((length(V(g)[type==TRUE])-2)*(length(V(g)[type==TRUE])-1))/(2*length(V(g)[type==TRUE])-3)
+        }
+        if (length(V(g)[type==TRUE])<length(V(g)[type==FALSE])){
+            denom_FALSE <- ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-2))/(2*length(V(g)[type==FALSE])-3) + ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-length(V(g)[type==TRUE])))/(length(V(g)[type==FALSE])+length(V(g)[type==TRUE])-2)
+        }
+        else{
+            denom_FALSE <- ((length(V(g)[type==FALSE])-2)*(length(V(g)[type==FALSE])-1))/(2*length(V(g)[type==FALSE])-3)
+        }
+        
+        # determine centralization for TRUE vertex subset
+        g$sm.closeness.centralization.columns <-sum(max_c_TRUE - V(g)[type==TRUE]$Bipartite.Closeness.Centrality)/denom_TRUE
+        # determine centralization for FALSE vertex subset
+        g$sm.closeness.centralization.rows <-sum(max_c_FALSE - V(g)[type==FALSE]$Bipartite.Closeness.Centrality)/denom_FALSE
+        # return both values as list
+        return(list("SM.bi.ClosenessCentrality.columns"=g$sm.closeness.centralization.columns,"SM.bi.ClosenessCentrality.rows"=g$single.mode.closeness.centralization.rows))
+    }
+    else {
+        # boolean vertex attribute 'type' is required
+        cat("vertex attribute <type> is missing")
+    } else if (!is.null(V(g)$type)){
         # determine maximal raw scores for both vertex subsets
         mrs_TRUE <- length(V(g)[type==FALSE]) + 2*length(V(g)[type==TRUE]) - 2
         mrs_FALSE <- length(V(g)[type==TRUE]) + 2*length(V(g)[type==FALSE]) - 2
@@ -360,27 +405,77 @@ bcloseCentrality <-function(g){
         # "bipartite" normalization of scores
         for (i in V(g)){
             if (V(g)[i]$type==TRUE){
-                V(g)[i]$closeness.centrality <- mrs_TRUE/rowsums_shortest_paths[i+1]
+                V(g)[i]$closeness.centrality.columns <- mrs_TRUE/rowsums_shortest_paths[i+1]
             }
             else{
-                V(g)[i]$closeness.centrality <- mrs_FALSE/rowsums_shortest_paths[i+1]
+                V(g)[i]$closeness.centrality.rows <- mrs_FALSE/rowsums_shortest_paths[i+1]
             }
         }
         # return value as list
-        return(list("Bipartite.Closeness.Centrality"=V(g)$closeness.centrality))
+        return(list("bi.ClosenessCentrality.columns"=na.omit(V(g)$closeness.centrality.columns,"bi.ClosenessCentrality.rows"=na.omit(V(g)$closeness.centrality.rows))
     }
     else {
         # boolean vertex attribute 'type' is required
         warning("vertex attribute <type> is missing")
     }
 }
+#' Betweeness centrality for bipartite graphs
+#' @title Betweeness centrality for bipartite graphs.
+#' @name bi.BetweenessCentrality
+#' @description Measures Betweeness centrality of bipartite graphs. The betweenness centrality of a vertex  may be roughly defined as the number of geodesic paths that pass through a given vertex, 
+#' weighted inversely by the total number of equivalent paths between the same two vertices, including those that do not pass through the given vertex.  
+#' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central 
+#' relative only to other vertices in the same subset.This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
+#' @param g: igraph object
+#' @param SM: TRUE or FALSE 
+#' @references
+#' \itemize{
+#'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
+#'   }
+#' @return Returns a list scores of closeness centrality of the nodes. By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
+#'
 
-bBetweenCentrality <- function(g){
+
+bi.BetweenessCentrality <- function(g,SM=TRUE){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
-    }     
-    if (!is.null(V(g)$type)){
+    }
+    if (SM==TRUE){
+        if (!is.null(V(g)$type)){
+            # determine denominators for both vertex subsets
+            if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
+                denom_TRUE <- 2*(length(V(g)[type==TRUE])-1)*(length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1)
+            }
+            else{
+                denom_TRUE <- (length(V(g)[type==TRUE])-1) * ( 0.5*length(V(g)[type==FALSE])*(length(V(g)[type==FALSE])-1) + 0.5*(length(V(g)[type==TRUE])-1)*(length(V(g)[type==TRUE])-2) + (length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-1) )
+            }
+            if (length(V(g)[type==TRUE])<length(V(g)[type==FALSE])){
+                denom_FALSE <- 2*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-1)
+            }
+            else{
+                denom_FALSE <- (length(V(g)[type==FALSE])-1) * ( 0.5*length(V(g)[type==TRUE])*(length(V(g)[type==TRUE])-1) + 0.5*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==FALSE])-2) + (length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-1) )
+            }
+            
+            # determine raw betweenness centrality scores from igraph
+            V(g)$betweenness.raw <- betweenness(g,directed=FALSE)
+            # get maximum scores
+            max_c_TRUE <- max(V(g)[type==TRUE]$betweenness.raw)
+            max_c_FALSE <- max(V(g)[type==FALSE]$betweenness.raw)
+            
+            # determine centralization for TRUE vertex subset
+            g$sm.betweenness.centralization.columns <-sum(max_c_TRUE - V(g)[type==TRUE]$betweenness.raw)/denom_TRUE
+            # determine centralization for FALSE vertex subset
+            g$sm.betweenness.centralization.rows <-sum(max_c_FALSE - V(g)[type==FALSE]$betweenness.raw)/denom_FALSE
+            # return both values as list
+            return(list("SM.bi.BetweenessCentrality.columns"=g$sm.betweenness.centralization.columns,"SM.bi.BetweenessCentrality.rows"=g$sm.betweenness.centralization.rows))
+        }
+        else {
+            # boolean vertex attribute 'type' is required
+            warning("vertex attribute <type> is missing")
+        }       
+        
+    } else if (!is.null(V(g)$type)){
         # determine maximal raw scores for both vertex subsets
         if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
             mrs_TRUE <- 2*(length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-1)
@@ -401,21 +496,20 @@ bBetweenCentrality <- function(g){
         # "bipartite" normalization of scores
         for (i in V(g)){
             if (V(g)[i]$type==TRUE){
-                V(g)[i]$betweenness.centrality <- betweenness_rs[i+1]/mrs_TRUE
+                V(g)[i]$betweenness.centrality.columns <- betweenness_rs[i+1]/mrs_TRUE
             }
             else{
-                V(g)[i]$betweenness.centrality <- betweenness_rs[i+1]/mrs_FALSE
+                V(g)[i]$betweenness.centrality.rows <- betweenness_rs[i+1]/mrs_FALSE
             }
         }
         # return value as list
-        return(list("Bipartite.Betweenness.Centrality"=V(g)$betweenness.centrality))
+        return(list("bi.BetweenessCentrality.columns"=na.omit(V(g)$betweenness.centrality.columns),"bi.BetweenessCentrality.rows"=na.omit(V(g)$betweenness.centrality.rows)))
     }
     else {
         # boolean vertex attribute 'type' is required
-        cat("vertex attribute <type> is missing")
-    }
+        warning("vertex attribute <type> is missing")
+    }   
 }
-
 
 
 
