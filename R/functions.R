@@ -515,9 +515,97 @@ bi.BetweenessCentrality <- function(g,SM=TRUE){
     }   
 }
 
+#' Projecting Bipartite Networks
+#' @title Projecting Bipartite Networks.
+#' @name bi.weightedProjection
+#' @description Projecting the Bipartite Network based on the vertex type (\code{TRUE} or \code{FALSE}).The mode \code{"shared-neighbours"} adds the number of shared neighbours in the bipartite graph to the edge linking two neighbours in the monopartite projection. 
+#' \code{"newman"} adopts the weighting scheme presented by Newman (2001), that weighs the contributions of shared neighbours by the size of their linkage profiles minus one.  
+#' Choosing \verb{'pass-through'} allows to provide arbitrary weighting matrices as argument. 
+#' @param g: igraph object
+#' @param SM: TRUE or FALSE 
+#' @references
+#' \itemize{
+#'   \item Newman M (2001) Scientific collaboration networks. II. Shortest paths, weighted networks, and centrality. Physical Review E 64.
+#'   }
+#' @return Returns a list scores of closeness centrality of the nodes. By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
+#'
 
 
-
+bi.weightedProjection <- function(g,vertex=FALSE,mode='shared-neighbours'){
+        bp <- is.bipartite(g)
+        if (bp$res){
+            V(g)$type <- bp$type
+            if (vertex) proj <- bipartite.projection(g)[[2]]
+            else proj <- bipartite.projection(g)[[1]]
+            V(proj)$name <- V(g)[type==vType]$name
+            ## number of shared vertices as edge weights 
+            if (mode=='shared-neighbours'){
+                incidenceMatrix <- get.incidence(g)	## TODO: might need some more testing if type and vType match
+                if (!vertex){
+                    ## off-diagonal elements represent edge weights, diagonal elements vertex weights (currently unused)
+                    m <- incidenceMatrix %*% t(incidenceMatrix)
+                }
+                else {
+                    m <- t(incidenceMatrix) %*% incidenceMatrix
+                }
+                ## assign edge weights from matrix m
+                if (length(E(proj))>0){
+                    for (i in 0:(length(E(proj))-1)){
+                        E(proj)[i]$weight <- m[V(proj)[get.edge(proj,i)[[1]]]$name, V(proj)[get.edge(proj,i)[[2]]]$name]
+                    }
+                }
+                return(proj)
+            }
+            ## Newman2001
+            if (mode=='newman'){
+               incidenceMatrix <- get.incidence(g)
+                if (!vertex){
+                    ## off-diagonal elements represent edge weights, diagonal elements vertex weights (currently unused)
+                    incidenceMatrix <- t(incidenceMatrix)
+                    if (length(c(which(rowSums(incidenceMatrix)==1)))!=0){
+                        m2 <- incidenceMatrix[c(which(rowSums(incidenceMatrix)==1))*(-1),]
+                    }
+                    else{
+                        m2 <- incidenceMatrix
+                    }
+                    m <- t(m2) %*% (m2*(1/(rowSums(m2)-1)))
+                }
+                else {	
+                    if (length(c(which(rowSums(incidenceMatrix)==1)))!=0){
+                        m2 <- incidenceMatrix[c(which(rowSums(incidenceMatrix)==1))*(-1),]
+                    }
+                    else{
+                        m2 <- incidenceMatrix
+                    }
+                    m <- t(m2) %*% (m2*(1/(rowSums(m2)-1)))
+                }
+                ## assign edge weights from matrix m
+                if (length(E(proj))>0){
+                    for (i in 0:(length(E(proj))-1)){
+                        E(proj)[i]$weight <- m[V(proj)[get.edge(proj,i)[[1]]]$name, V(proj)[get.edge(proj,i)[[2]]]$name]
+                    }
+                }
+                return(proj)
+            }
+            ## generic, just take provided matrix as weight
+            else if (mode=='pass-through'){
+                if (is.null(m)){
+                    cat('Weight matrix is missing')
+                    return(NULL)
+                }
+                else {
+                    ## assign edge weights from provided matrix
+                    if (length(E(proj))>0){
+                        for (i in 0:(length(E(proj))-1)){
+                            E(proj)[i]$weight <- m[V(proj)[get.edge(proj,i)[[1]]]$name, V(proj)[get.edge(proj,i)[[2]]]$name]
+                        }
+                    }
+                    return(proj)
+                }
+            }
+        }
+        else warning('Graph is not bipartite !')
+    }
 
 
 getDrugbanksdf <- function (id, parallel = 2) {
