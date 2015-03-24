@@ -270,6 +270,7 @@ bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
         stop("The function must apply to 'igraph' object.\n")
         
     }
+    if (SM==TRUE){
     if (!is.null(V(g)$type)){
         V(g)$degree <- degree(g)
         # determine maximum degrees for each vertex set
@@ -284,9 +285,9 @@ bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
     }
     else {
         # boolean vertex attribute 'type' is required
-        cat("vertex attribute <type> is missing")
+        warning("vertex attribute <type> is missing")
     }
-    if (!is.null(V(g)$type)){
+   } else if (!is.null(V(g)$type)){
             
             for (i in V(g)){
                 V(g)[i]$degreeCentrality <- degree(g,v=i)/length(V(g)[type==!V(g)[i]$type])
@@ -362,38 +363,42 @@ bi.ClosenessCentrality <-function(g,SM=TRUE){
         stop("The function must apply to 'igraph' object.\n")
         
     }
-    if (!is.null(V(g)$type)){
-        # determine bipartite closeness centrality scores
-        V(g)$Bipartite.Closeness.Centrality <- bipartite.closeness.centrality(g)[[1]]
+    if (SM==TRUE){
         
-        # get maximum scores
-        max_c_TRUE <- max(V(g)[type==TRUE]$Bipartite.Closeness.Centrality)
-        max_c_FALSE <- max(V(g)[type==FALSE]$Bipartite.Closeness.Centrality)
+        if (!is.null(V(g)$type)){
+            # determine bipartite closeness centrality scores
+            V(g)$Bipartite.Closeness.Centrality <- bipartite.closeness.centrality(g)[[1]]
+            
+            # get maximum scores
+            max_c_TRUE <- max(V(g)[type==TRUE]$Bipartite.Closeness.Centrality)
+            max_c_FALSE <- max(V(g)[type==FALSE]$Bipartite.Closeness.Centrality)
+            
+            # determine denominators for both vertex subsets
+            if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
+                denom_TRUE <- ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-2))/(2*length(V(g)[type==TRUE])-3) + ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-length(V(g)[type==FALSE])))/(length(V(g)[type==TRUE])+length(V(g)[type==FALSE])-2)
+            }
+            else{
+                denom_TRUE <- ((length(V(g)[type==TRUE])-2)*(length(V(g)[type==TRUE])-1))/(2*length(V(g)[type==TRUE])-3)
+            }
+            if (length(V(g)[type==TRUE])<length(V(g)[type==FALSE])){
+                denom_FALSE <- ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-2))/(2*length(V(g)[type==FALSE])-3) + ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-length(V(g)[type==TRUE])))/(length(V(g)[type==FALSE])+length(V(g)[type==TRUE])-2)
+            }
+            else{
+                denom_FALSE <- ((length(V(g)[type==FALSE])-2)*(length(V(g)[type==FALSE])-1))/(2*length(V(g)[type==FALSE])-3)
+            }
+            
+            # determine centralization for TRUE vertex subset
+            g$sm.closeness.centralization.columns <-sum(max_c_TRUE - V(g)[type==TRUE]$Bipartite.Closeness.Centrality)/denom_TRUE
+            # determine centralization for FALSE vertex subset
+            g$sm.closeness.centralization.rows <-sum(max_c_FALSE - V(g)[type==FALSE]$Bipartite.Closeness.Centrality)/denom_FALSE
+            # return both values as list
+            return(list("SM.bi.ClosenessCentrality.columns"=g$sm.closeness.centralization.columns,"SM.bi.ClosenessCentrality.rows"=g$single.mode.closeness.centralization.rows))
+        }
+        else {
+            # boolean vertex attribute 'type' is required
+            warning("vertex attribute <type> is missing")
+        } 
         
-        # determine denominators for both vertex subsets
-        if (length(V(g)[type==FALSE])<length(V(g)[type==TRUE])){
-            denom_TRUE <- ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-2))/(2*length(V(g)[type==TRUE])-3) + ((length(V(g)[type==FALSE])-1)*(length(V(g)[type==TRUE])-length(V(g)[type==FALSE])))/(length(V(g)[type==TRUE])+length(V(g)[type==FALSE])-2)
-        }
-        else{
-            denom_TRUE <- ((length(V(g)[type==TRUE])-2)*(length(V(g)[type==TRUE])-1))/(2*length(V(g)[type==TRUE])-3)
-        }
-        if (length(V(g)[type==TRUE])<length(V(g)[type==FALSE])){
-            denom_FALSE <- ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-2))/(2*length(V(g)[type==FALSE])-3) + ((length(V(g)[type==TRUE])-1)*(length(V(g)[type==FALSE])-length(V(g)[type==TRUE])))/(length(V(g)[type==FALSE])+length(V(g)[type==TRUE])-2)
-        }
-        else{
-            denom_FALSE <- ((length(V(g)[type==FALSE])-2)*(length(V(g)[type==FALSE])-1))/(2*length(V(g)[type==FALSE])-3)
-        }
-        
-        # determine centralization for TRUE vertex subset
-        g$sm.closeness.centralization.columns <-sum(max_c_TRUE - V(g)[type==TRUE]$Bipartite.Closeness.Centrality)/denom_TRUE
-        # determine centralization for FALSE vertex subset
-        g$sm.closeness.centralization.rows <-sum(max_c_FALSE - V(g)[type==FALSE]$Bipartite.Closeness.Centrality)/denom_FALSE
-        # return both values as list
-        return(list("SM.bi.ClosenessCentrality.columns"=g$sm.closeness.centralization.columns,"SM.bi.ClosenessCentrality.rows"=g$single.mode.closeness.centralization.rows))
-    }
-    else {
-        # boolean vertex attribute 'type' is required
-        cat("vertex attribute <type> is missing")
     } else if (!is.null(V(g)$type)){
         # determine maximal raw scores for both vertex subsets
         mrs_TRUE <- length(V(g)[type==FALSE]) + 2*length(V(g)[type==TRUE]) - 2
@@ -411,10 +416,9 @@ bi.ClosenessCentrality <-function(g,SM=TRUE){
                 V(g)[i]$closeness.centrality.rows <- mrs_FALSE/rowsums_shortest_paths[i+1]
             }
         }
-        # return value as list
-        return(list("bi.ClosenessCentrality.columns"=na.omit(V(g)$closeness.centrality.columns,"bi.ClosenessCentrality.rows"=na.omit(V(g)$closeness.centrality.rows))
-    }
-    else {
+        # return values as list
+        return(list("bi.ClosenessCentrality.columns"=na.omit(V(g)$closeness.centrality.columns),"bi.ClosenessCentrality.rows"=na.omit(V(g)$closeness.centrality.rows)))
+    } else {
         # boolean vertex attribute 'type' is required
         warning("vertex attribute <type> is missing")
     }
