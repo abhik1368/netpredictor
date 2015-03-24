@@ -1,8 +1,7 @@
 #' get.candidate.graph
 #' @title get.candidata.graph
 #' @name get.candidate.graph
-#' @param file: Input seeds file must be 2 column matrix of seed nodes of a bipartite graph.
-#' A input file should be dataframe or matrix 
+#' @param file: Input seeds file must be 2 column dataframe or matrix of seed nodes of a bipartite graph. 
 #' @param affinity: Computed affinity matrix from Bipartite network.
 #' @param top: retrieving top number of results.
 #' @export
@@ -126,3 +125,49 @@ saveGML = function(g, fileName, title = "untitled") {
     close(f)
 }
 
+#' Export file to GML
+#' @title save GML 
+#' @description Export an igraph object to gexf format graph file which can be in opened in Gephi.
+#' @param g: igraph object
+#' @param filepath: output graph name
+#' @return Outputs a Gephi format gexf graph
+#' @export
+
+saveAsGEXF = function(g, filepath="output.gexf")
+{
+    require(igraph)
+    require(rgexf)
+    
+    # gexf nodes require two column data frame (id, label)
+    # check if the input vertices has label already present
+    # if not, just have the ids themselves as the label
+    if(is.null(V(g)$label))
+        V(g)$label <- as.character(V(g)$name)
+    
+    # similarily if edges does not have weight, add default 1 weight
+    if(is.null(E(g)$weight))
+        E(g)$weight <- rep.int(1, ecount(g))
+    
+    nodes <- data.frame(cbind(V(g), V(g)$label))
+    edges <- t(Vectorize(get.edge, vectorize.args='id')(g, 1:ecount(g)))
+    
+    # combine all node attributes into a matrix (and take care of & for xml)
+    vAttrNames <- setdiff(list.vertex.attributes(g), "label") 
+    nodesAtt <- data.frame(sapply(vAttrNames, function(attr) sub("&", "&#038;",get.vertex.attribute(g, attr))))
+    
+    # combine all edge attributes into a matrix (and take care of & for xml)
+    eAttrNames <- setdiff(list.edge.attributes(g), "weight") 
+    edgesAtt <- data.frame(sapply(eAttrNames, function(attr) sub("&", "&#038;",get.edge.attribute(g, attr))))
+    
+    # combine all graph attributes into a meta-data
+    graphAtt <- sapply(list.graph.attributes(g), function(attr) sub("&", "&#038;",get.graph.attribute(g, attr)))
+    
+    # generate the gexf object
+    output <- write.gexf(nodes, edges, 
+                         edgesWeight=E(g)$weight,
+                         edgesAtt = edgesAtt,
+                         nodesAtt = nodesAtt,
+                         meta=c(list(creator="Gopalakrishna Palem", description="igraph -> gexf converted file", keywords="igraph, gexf, R, rgexf"), graphAtt))
+    
+    print(output, filepath, replace=T)
+}

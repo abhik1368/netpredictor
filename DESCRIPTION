@@ -8,6 +8,6 @@ Depends: R (>= 3.1.3), igraph,utils,Matrix,parallel
 Maintainer: Abhik Seal <abhik1368@gmail.com>
 Description: Prediction of Missing links in Networks .
 License: MIT
-imports: graph, Rgraphviz, Matrix,RCurl,roxygen2
-Suggests:foreach, doMC
+imports: graph, Rgraphviz, Matrix,RCurl,roxygen2,rgexf,Rook
+Suggests:foreach, doMC,Rook
 LazyData: true
