@@ -64,13 +64,6 @@ get.scid.sid("CHEMBL12",1)
 # Using drugbank id and source
 get.scid.sid("DB00789",2)
 }
-\donttest{
-# Get source compound ids and source information
-# Using ChEMBL ID and source
-get.scid.sid("CHEMBL12",1)
-# Using drugbank id and source
-get.scid.sid("DB00789",2)
-}
 }
 \references{
 \itemize{

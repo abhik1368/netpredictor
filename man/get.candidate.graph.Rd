@@ -8,8 +8,7 @@ get.candidate.graph(file = NULL, affinity = NULL, top = 10,
   format = c("bipart", "unipart"))
 }
 \arguments{
-\item{file:}{Input seeds file must be 2 column matrix of seed nodes of a bipartite graph.
-A input file should be dataframe or matrix}
+\item{file:}{Input seeds file must be 2 column dataframe or matrix of seed nodes of a bipartite graph.}
 
 \item{affinity:}{Computed affinity matrix from Bipartite network.}
 

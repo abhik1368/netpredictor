@@ -624,15 +624,6 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 #'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
 #' }
 #' @export
-#' @examples
-#' \donttest{
-#' # Get source compound ids and source information
-#' # Using ChEMBL ID and source
-#' get.scid.sid("CHEMBL12",1)
-#' # Using drugbank id and source
-#' get.scid.sid("DB00789",2)
-#' }
-#' 
 
 hgviNet <- function(g1,s1,s2,file=NULL,alpha=0.8,verbose=T) {
     
@@ -651,4 +642,16 @@ hgviNet <- function(g1,s1,s2,file=NULL,alpha=0.8,verbose=T) {
         stop("The function applies to bipartite graphs.\n")
     }
     
+    
+    
 }
+
+# 
+# library(parallel)
+# library(snow)
+# cl <- makeCluster(detectCores())
+# cl
+# A <- matrix(rnorm(1000000), 1000)
+# system.time(parMM(cl, A, A))
+# system.time(A %*% A)
+
