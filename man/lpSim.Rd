@@ -10,6 +10,8 @@ lpSim(graph, eps = 0.01)
 \item{graph:}{igraph object}
 
 \item{eps:}{epsilon parameter}
+
+\item{graph:}{a igraph object}
 }
 \value{
 a matrix object of similarity scores.

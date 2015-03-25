@@ -6,6 +6,9 @@
 \usage{
 aaSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure counting common neighbors weighted by their degrees.
 }

@@ -6,7 +6,12 @@
 \usage{
 actSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This function calculates vertex similarity based on the average number of
+steps, that random walker on the graph needs to get from one vertex to
+another.
 }
 

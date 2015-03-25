@@ -6,7 +6,11 @@
 \usage{
 cosineSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This function measures the cosine of the angle between columns of
+the adjacency matrix, corresponding to given nodes.
 }
 

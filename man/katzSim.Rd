@@ -6,6 +6,9 @@
 \usage{
 katzSim(graph, beta = 0.001)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure based on all paths in a graph. This function counts all the paths between given pair of nodes, with shorter
 }

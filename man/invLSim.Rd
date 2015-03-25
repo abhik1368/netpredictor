@@ -6,6 +6,9 @@
 \usage{
 invLSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure based solely on the pseudoinverse of the Laplacian matrix. This function counts all the paths between given pair of nodes, with shorter
 }

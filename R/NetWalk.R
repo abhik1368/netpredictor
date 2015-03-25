@@ -214,8 +214,8 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
 #' @param A: Adjacency Matrix
 #' @param lamda: lamda parameter
 #' @param alpha: alpha parameter
-#' @param S: Target Similarity matrix
-#' @param S1: Chemical Similarity Matrix
+#' @param S1: Target Similarity matrix
+#' @param S2: Chemical Similarity Matrix
 #' @param format: type of file as Adjacnency file
 #' @name nbiNet
 #' @references 
@@ -227,7 +227,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
 #' }
 #' @export
 
-nbiNet <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","matrix")) {
+nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("pairs","matrix")) {
     
     format <- match.arg(format)
     
@@ -247,10 +247,10 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","ma
     
     n = nrow(adjM)
     m = ncol(adjM)
-    if (nrow(S1) != m || ncol(S1) != m) {
+    if (nrow(S2) != m || ncol(S2) != m) {
         stop("The matrix S1 should be an m by m matrix with same number of columns as A.")
     }
-    if (nrow(S) != n || ncol(S) != n) {
+    if (nrow(S1) != n || ncol(S1) != n) {
         stop("The matrix S should be an n by n matrix with same number of rows as A")
     }
     
@@ -271,8 +271,8 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","ma
     
     P1 <- adjM %*% S1 %*% t(adjM)
     P2 <- adjM %*% matrix(1, nrow=m, ncol=m) %*% t(adjM)
-    S2 <- P1 / P2
-    W  <- W * ((alpha * S) + ((1-alpha) * S2))
+    S3 <- P1 / P2
+    W  <- W * ((alpha * S1) + ((1-alpha) * S2))
     
     W[is.nan(W)] <- 0
     rM <- W %*% adjM
@@ -283,9 +283,9 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S=NA, S1=NA,format = c("pairs","ma
 #' Randomm walk with restart on Bipartite networks
 #' @title Bipartite Random Walk
 #' @name biNetwalk
-#' @param g1 :igraph object
-#' @param s1: Similarity matrix for targets
-#' @param s2: Similarity matrix for compounds
+#' @param g1: igraph object
+#' @param s1: Accepts a matrix object of similarity scores for targets.
+#' @param s2: Accepts a matrix object similarity scores for compounds.
 #' @param normalise: Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
 #' @param setSeeds: seeds file
 #' @param file: Accepts file for seeds
@@ -611,6 +611,8 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 #' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
 #' Parallalization is implemented with multicores. Parallization is done using foreach package. 
 #' @param ig : igraph object
+#' @param s1 : 
+#' @param s2 :
 #' @param normalise : normalise method 
 #' @param setSeeds: vector or dataframe
 #' @param restart: restart probability parameter

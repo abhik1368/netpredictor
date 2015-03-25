@@ -6,6 +6,9 @@
 \usage{
 cnSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure counting number of common neighbors.
 }

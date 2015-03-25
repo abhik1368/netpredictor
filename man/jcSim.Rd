@@ -6,6 +6,9 @@
 \usage{
 jcSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure based on jaccard index.This is a simple wrapper to an \pkg{igraph} function \code{\link[igraph]{similarity.jaccard}},
 }

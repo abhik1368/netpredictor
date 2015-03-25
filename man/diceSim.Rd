@@ -6,6 +6,9 @@
 \usage{
 diceSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 Similarity measure based on dice similarity. This function measures a relative size of an intersection of neighbors sets
 }

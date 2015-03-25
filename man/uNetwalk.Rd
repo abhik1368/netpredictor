@@ -16,6 +16,10 @@ hgviNet(g1, s1, s2, file = NULL, alpha = 0.8, verbose = T)
 
 \item{normalise}{: normalise method}
 
+\item{s1}{:}
+
+\item{s2}{:}
+
 \item{setSeeds:}{vector or dataframe}
 
 \item{restart:}{restart probability parameter}

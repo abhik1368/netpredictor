@@ -6,6 +6,9 @@
 \usage{
 hpiSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This measures assigns higher scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
 }

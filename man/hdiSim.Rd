@@ -6,6 +6,9 @@
 \usage{
 hdiSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This measures assigns lower scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
 }

@@ -8,6 +8,8 @@ raSim(graph)
 }
 \arguments{
 \item{graph:}{igraph object}
+
+\item{graph:}{a igraph object}
 }
 \description{
 This function counts the number of common neighbours weighted by the inverse

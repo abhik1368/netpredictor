@@ -6,6 +6,9 @@
 \usage{
 lhnSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This index gives high similarity to node pairs that have many common
 neighbors compared not to the possible maximum, but to the expected number of such neighbors

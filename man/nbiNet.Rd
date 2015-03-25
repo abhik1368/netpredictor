@@ -4,7 +4,7 @@
 \alias{nbiNet}
 \title{Network Based Inference}
 \usage{
-nbiNet(A, lambda = 0.5, alpha = 0.5, S = NA, S1 = NA,
+nbiNet(A, lambda = 0.5, alpha = 0.5, S1 = NA, S2 = NA,
   format = c("pairs", "matrix"))
 }
 \arguments{
@@ -14,9 +14,9 @@ nbiNet(A, lambda = 0.5, alpha = 0.5, S = NA, S1 = NA,
 
 \item{alpha:}{alpha parameter}
 
-\item{S:}{Target Similarity matrix}
+\item{S1:}{Target Similarity matrix}
 
-\item{S1:}{Chemical Similarity Matrix}
+\item{S2:}{Chemical Similarity Matrix}
 
 \item{format:}{type of file as Adjacnency file}
 }

@@ -6,6 +6,9 @@
 \usage{
 distSim(graph)
 }
+\arguments{
+\item{graph:}{a igraph object}
+}
 \description{
 This function calculates similarity score for vertices based on the shortest paths between them.
 }

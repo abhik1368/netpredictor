@@ -9,11 +9,11 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), setSeeds = NULL,
   verbose = T, weight = FALSE)
 }
 \arguments{
-\item{g1}{:igraph object}
+\item{g1:}{igraph object}
 
-\item{s1:}{Similarity matrix for targets}
+\item{s1:}{Accepts a matrix object of similarity scores for targets.}
 
-\item{s2:}{Similarity matrix for compounds}
+\item{s2:}{Accepts a matrix object similarity scores for compounds.}
 
 \item{normalise:}{Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)}
 

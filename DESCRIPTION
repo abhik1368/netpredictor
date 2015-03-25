@@ -9,5 +9,6 @@ Maintainer: Abhik Seal <abhik1368@gmail.com>
 Description: Prediction of Missing links in Networks .
 License: MIT
 imports: graph, Rgraphviz, Matrix,RCurl,roxygen2,rgexf,Rook
-Suggests:foreach, doMC,Rook
+Suggests: foreach, doMC,Rook,
+    testthat
 LazyData: true
