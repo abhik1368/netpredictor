@@ -5,7 +5,7 @@
 \title{Network Based Inference}
 \usage{
 nbiNet(A, lambda = 0.5, alpha = 0.5, S1 = NA, S2 = NA,
-  format = c("pairs", "matrix"))
+  format = c("igraph", "matrix", "pairs"))
 }
 \arguments{
 \item{A:}{Adjacency Matrix}
@@ -26,6 +26,16 @@ This process allows us to define a technique for the calculation of the weight m
 }
 \details{
 Network based inference on Bipartite networks
+}
+\examples{
+\donttest{
+A <- enzyme_ADJ
+S = enzyme_Csim
+S1 = enzyme_Gsim
+g1 = graph.incidence(A)
+## other format available \\code{format = c("igraph","matrix","pairs")}
+M2 <- nbiNet(A, lambda=0.5, alpha=0.5, S1=S, S2=S1,format = "matrix")
+}
 }
 \references{
 \itemize{

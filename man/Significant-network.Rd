@@ -31,4 +31,14 @@ sig.net(data, g, Amatrix, num.permutation = 10, adjp.cutoff = 0.05,
 \description{
 Significance of Bipartite networks
 }
+\examples{
+\donttest{
+A <- enzyme_ADJ
+S = enzyme_Csim
+S1 = enzyme_Gsim
+g1 = graph.incidence(A)
+Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+}
+}
 

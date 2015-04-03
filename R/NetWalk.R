@@ -6,7 +6,7 @@
 #' Parallalization is implemented with multicores. Parallization is done using foreach package. 
 #' @param ig : igraph object
 #' @param normalise : normalise method 
-#' @param setSeeds: vector or dataframe
+#' @param dataSeed: vector or dataframe
 #' @param restart: restart probability parameter
 #' @param parallel: to execute in parallel either TRUE or FALSE
 #' @param multcores: Number of cores to be used when running in parallel
@@ -20,17 +20,23 @@
 #' @export
 #' @examples
 #' \donttest{
-#' # Get source compound ids and source information
-#' # Using ChEMBL ID and source
-#' get.scid.sid("CHEMBL12",1)
-#' # Using drugbank id and source
-#' get.scid.sid("DB00789",2)
+#' # generate a random graph according to the ER model
+#' g1 <- erdos.renyi.game(100, 1/100)
+#' ## Computing RWR
+#' pM <- uNetwalk(g=g1,normalise="laplacian", restart=0.75, parallel=FALSE)
+#' ##
+#' d1 <- c(1,0,1,0,1)
+#' d2 <- c(0,0,1,0,1)
+#' dataSeed <- data.frame(d1,d2)
+#' rownames(dataSeed) <- 1:5
+#' pM <- uNetwalk(g=subg, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
+#' pM
 #' }
 
-uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeeds=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) {
-    
+uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
+    {
+
     startT <- Sys.time()
-    # Stopping criteria
     stop_delta <- 1e-7   
     if (class(ig) != "igraph"){
         stop("The function must apply to either 'igraph' or 'matrix' object.\n")
@@ -94,7 +100,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
         return(res)
     }
     
-    if(is.null(setSeeds)){
+    if(is.null(dataSeed)){
         
         P0matrix <- Matrix::Matrix(diag(vcount(ig)), sparse=T)
         rownames(P0matrix) <- V(ig)$name
@@ -102,11 +108,16 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
         
     }else{
         ## check input data
+        if(is.matrix(dataSeed) | is.data.frame(dataSeed)){
+            data <- as.matrix(dataSeed)
+        }else if(is.vector(dataSeed)){
+            data <- as.matrix(dataSeed, ncol=1)
+        }
         
-        if(is.null(rownames(data))) {
-            stop("The function must require the row names of the input setSeeds.\n")
+        if(is.null(rownames(dataSeed))) {
+            stop("The function must require the row names of the input dataSeed.\n")
         }else if(any(is.na(rownames(data)))){
-            warning("setSeeds with NA as row names will be removed")
+            warning("dataSeed with NA as row names will be removed")
             data <- data[!is.na(rownames(data)),]
         }
         
@@ -119,7 +130,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
             ind <- match(rownames(data), V(ig)$name)
             nodes_mapped <- V(ig)$name[ind[!is.na(ind)]]
             if(length(nodes_mapped)!=vcount(ig)){
-                warning("The row names of input setSeeds do not contain all those in the input graph.\n")
+                warning("The row names of input dataSeed do not contain all those in the input graph.\n")
             }
             P0matrix <- matrix(0,nrow=nrow(nadjM),ncol=ncol(data))
             P0matrix[ind[!is.na(ind)],] <- as.matrix(data[!is.na(ind),])
@@ -225,25 +236,41 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), setSeed
 #' \item Zhou T, et al. Bipartite network projection and personal recommendation. Phys. Rev. E Stat. Nonlin. Soft Matter Phys. 2007;76:046115.
 #' \item Blog post from Abhik Seal \url{http://data2quest.blogspot.com/2015/02/link-prediction-using-network-based.html}
 #' }
+#' @examples
+#' \donttest{
+#' A <- enzyme_ADJ 
+#' S = enzyme_Csim 
+#' S1 = enzyme_Gsim
+#' g1 = graph.incidence(A)
+#' ## other format available \code{format = c("igraph","matrix","pairs")}
+#' M2 <- nbiNet(A, lambda=0.5, alpha=0.5, S1=S, S2=S1,format = "matrix")
+#' } 
 #' @export
 
-nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("pairs","matrix")) {
+nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","matrix","pairs")) {
+    
+    startT <- Sys.time()
     
     format <- match.arg(format)
-    
-    if (format == "matrix"){
+    now <- Sys.time()
+    message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T)
+    if (format == "igraph"){
+        adjM = get.incidence(A)
+    }
+    else if (format == "matrix"){
         
         if(is.data.frame(A)){
             adjM <- as.matrix(A)
         }
-    } else if(format == "pairs") {
+    } 
+    else if(format == "pairs") {
         d<- graph.data.frame(A) ## only accepts pairs file
         V(d)$type <- V(d)$name %in% A[,1]
         data <-  get.incidence(d)
         adjM <- transpose(data)
-    } else {
-        stop("The function apply to either 'pairs file type' or 'matrix file type' object.\n")
-    }
+    } 
+    else stop ("Adjacency matrix should be 'igraph','matrix' or 'pairs' file type \n.")
+    
     
     n = nrow(adjM)
     m = ncol(adjM)
@@ -258,25 +285,38 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("pairs","m
     Ky[is.infinite(Ky) | is.na(Ky)] <- 0
     
     kx <- rowSums(adjM)
+    kx[is.infinite(kx) | is.na(kx)] <- 0
     Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lambda) * 
                  matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lambda))
     Nx[is.infinite(Nx) | is.na(Nx)] <- 0 
-    kx[is.infinite(kx) | is.na(kx)] <- 0 
     
-    W <- t(adjM %*% Ky)
-    W <-  adjM %*% W
+    cl <- makeCluster(detectCores())
+    W <- suppressWarnings(t(snow::parMM(cl,adjM,Ky)))
+    W <- suppressWarnings(snow::parMM(cl, adjM, W))  
+    #W <- t(adjM %*% Ky)
     W <- Nx * W
     rownames(W) <- rownames(adjM)
     colnames(W) <- rownames(adjM)
+    X5 <- suppressWarnings(snow::parMM(cl, adjM, S2))
+    X6 <- suppressWarnings(snow::parMM(cl, X5, t(adjM)))
+    X7 <- suppressWarnings(snow::parMM(cl, adjM, matrix(1, nrow=m, ncol=m)))
+    X8 <- suppressWarnings(snow::parMM(cl, X7, t(adjM)))
+    S3 <- X6 / X8
     
-    P1 <- adjM %*% S1 %*% t(adjM)
-    P2 <- adjM %*% matrix(1, nrow=m, ncol=m) %*% t(adjM)
-    S3 <- P1 / P2
-    W  <- W * ((alpha * S1) + ((1-alpha) * S2))
+    #P1 <- adjM %*% S1 %*% t(adjM)
+    #P2 <- adjM %*% matrix(1, nrow=m, ncol=m) %*% t(adjM)
+    #S3 <- P1 / P2
+    W  <- W * ((alpha * S1) + ((1-alpha) * S3))
     
     W[is.nan(W)] <- 0
-    rM <- W %*% adjM
-    return (rM)
+    rM <-  suppressWarnings(snow::parMM(cl,W,adjM))
+    
+    endT <- Sys.time()
+    stopCluster(cl)
+    runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
+    message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
+    message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
+    invisible (t(rM))
 }
 
 
@@ -287,7 +327,7 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("pairs","m
 #' @param s1: Accepts a matrix object of similarity scores for targets.
 #' @param s2: Accepts a matrix object similarity scores for compounds.
 #' @param normalise: Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
-#' @param setSeeds: seeds file
+#' @param dataSeed: seeds file
 #' @param file: Accepts file for seeds
 #' @param restart: restart value
 #' @param parallel: parallel performance either True or False . Parallelization is implemented using foreach.
@@ -297,13 +337,21 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("pairs","m
 #' \item Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.
 #' \item Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.
 #' }
+#' @examples
+#' \donttest{
+#' data(Enzyme)
+#' A <- enzyme_ADJ 
+#' S = enzyme_Csim 
+#' S1 = enzyme_Gsim
+#' g1 = graph.incidence(A)
+#' M3 <- biNetwalk(g1,s1=S,s2=S1,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+#' }
 #' @export
 
-biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
+biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
     
     startT <- Sys.time()
-    # Stopping criteria
-    
+
     if (!exists('s1') || !exists('s2')){
         stop("You must submit s1 and s2 matrices.\n")
     }
@@ -344,7 +392,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     # get the transition matrix
     W = tMat(adjM,s1,s2,normalise=normalise)
     
-    if(is.null(setSeeds) && is.null(file)){
+    if(is.null(dataSeed) && is.null(file)){
         
         M<-Matrix(adjM)
         M2<-0.99*M
@@ -354,16 +402,16 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
     }else if (is.null(file)){
         
         ## check input seeds
-        if(is.vector(setSeeds)){           
-            data <- as.matrix(setSeeds, ncol=1)
-            rownames(data)<-setSeeds
+        if(is.vector(dataSeed)){           
+            data <- as.matrix(dataSeed, ncol=1)
+            rownames(data)<-dataSeed
         }
         
         cnames <- "V1"    
         ind <- match(rownames(data), rownames(W))
         nodes_mapped <- rownames(W)[ind[!is.na(ind)]]
         if(length(nodes_mapped)!=length(rownames(data))){
-            warning("The row names of input setSeeds do not contain all those in the input graph.\n")
+            warning("The row names of input dataSeed do not contain all those in the input graph.\n")
         }  
         P0matrix <- matrix(0,nrow=nrow(W),ncol=1)
         P0matrix[ind[!is.na(ind)],] <- 1 
@@ -372,7 +420,6 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
         
         # part of the section for input file name
         drug.names <- as.character(unique(file$V2))
-        print (drug.names)
         P0matrix <- matrix(0,nrow=nrow(W),ncol=length(drug.names))
         for (i in 1:length(drug.names)){
             sub.fr <- file[file$V2==drug.names[i],]
@@ -382,7 +429,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
             ind <- append(ind1,ind2)
             nodes_mapped <- rownames(W)[ind[!is.na(ind)]]
             if(length(nodes_mapped)!=length(ind)){
-                warning("The row names of input setSeeds do not contain all those in the input graph.\n")
+                warning("The row names of input dataSeed do not contain all those in the input graph.\n")
             }
             
             P0matrix[ind[!is.na(ind)],i] <- 1 
@@ -438,8 +485,16 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), setSeeds=NULL, fil
 #' @param multicores: If parallisation is set TRUE number of cores to perform parallel computaion.
 #' @param Verbose: For verbose output.
 #' @name Significant network
+#' @examples
+#' \donttest{
+#' A <- enzyme_ADJ 
+#' S = enzyme_Csim 
+#' S1 = enzyme_Gsim
+#' g1 = graph.incidence(A)
+#' Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+#' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+#' } 
 #' @export
-
 
 sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.adjust.method=c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr"), parallel=TRUE, multicores=NULL, verbose=T)
 {   
@@ -606,31 +661,32 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 
 #' Heterogenous Graph based Inference 
 #' @title  Heterogenous Graph based Inference on Bipartite Network
-#' @description Peforms random walk with restart with preferred seed sets. If seed sets are not given then the adjacencny
-#' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
-#' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
-#' Parallalization is implemented with multicores. Parallization is done using foreach package. 
-#' @param ig : igraph object
-#' @param s1 : 
-#' @param s2 :
-#' @param normalise : normalise method 
-#' @param setSeeds: vector or dataframe
-#' @param restart: restart probability parameter
-#' @param parallel: to execute in parallel either TRUE or FALSE
-#' @param multcores: Number of cores to be used when running in parallel
-#' @param Verbose: Verbose output
-#' @name uNetwalk
+#' @description Peforms computation of heterogenous graph inference explained by Wang etal.
+#' @param g1 : igraph object
+#' @param s1: Accepts a matrix object of similarity scores for targets.
+#' @param s2: Accepts a matrix object similarity scores for compounds.
+#' @param steps : Number of steps to iterate.
+#' @param alpha : decay factor initialized to 0.4.
+#' @name hgviNet
 #' @references  
 #' \itemize{
-#'   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
-#'   \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+#'   \item Wang W, et al. Drug target predictions based on heterogeneous graph inference. Pac. Symp. Biocomput. 2013:53-64
+#' }
+#' #' @examples
+#' \donttest{
+#' A <- enzyme_ADJ 
+#' S = enzyme_Csim 
+#' S1 = enzyme_Gsim
+#' g1 = graph.incidence(A)
+#' M1 <- hgviNet(A,s1=S,s2=S1,alpha=0.4,steps=20)
 #' }
 #' @export
 
-hgviNet <- function(g1,s1,s2,file=NULL,alpha=0.8,verbose=T) {
+hgviNet <- function(g1,s1,s2,alpha=0.4,steps=20) {
     
     startT <- Sys.time()
-    # Stopping criteria
+    now <- Sys.time()
+    message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T) 
     
     if (!exists('s1') || !exists('s2')){
         stop("You must submit s1 and s2 matrices.\n")
@@ -643,17 +699,37 @@ hgviNet <- function(g1,s1,s2,file=NULL,alpha=0.8,verbose=T) {
     if (!bipartite.mapping(g1)$res){
         stop("The function applies to bipartite graphs.\n")
     }
+    adjM <- igraph::get.incidence(g1, attr=NULL, names=T)
+    D1  <- diag(x=(rowSums(adjM))^(-0.5))
+    D2  <- diag(x=(colSums(adjM))^(-0.5))
+ 
+    WRT <- D1 %*% adjM %*% D2
     
+    D3  <- diag(x=(rowSums(s1))^(-0.5))
+    WTT <- D3 %*% s1 %*% D3
     
+    D4  <- diag(x=(rowSums(s2))^(-0.5))
+    WDD  <- D4 %*% s2 %*% D4 
     
+    cl <- makeCluster(detectCores())
+
+    WT = suppressWarnings(snow::parMM(cl, WDD , t(WRT)))
+    
+    for ( i in 1:steps){
+        
+        WI = suppressWarnings(alpha*(snow::parMM(cl,WT,WTT)) + (1-alpha)*t(WRT))
+        WT = suppressWarnings(snow::parMM(cl, WDD , WI))        
+        i = i+1
+    }
+    endT <- Sys.time()
+    stopCluster(cl)
+    runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
+    message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
+    message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
+    rownames(WI) <- colnames(adjM)
+    colnames(WI) <- rownames(adjM)
+    return (as.matrix(WI))
 }
 
-# 
-# library(parallel)
-# library(snow)
-# cl <- makeCluster(detectCores())
-# cl
-# A <- matrix(rnorm(1000000), 1000)
-# system.time(parMM(cl, A, A))
-# system.time(A %*% A)
+
 

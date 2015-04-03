@@ -10,5 +10,7 @@ Description: Prediction of Missing links in Networks .
 License: MIT
 imports: graph, Rgraphviz, Matrix,RCurl,roxygen2,rgexf,Rook
 Suggests: foreach, doMC,Rook,
-    testthat
+    testthat,
+    knitr
 LazyData: true
+VignetteBuilder: knitr

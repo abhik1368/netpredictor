@@ -4,7 +4,7 @@
 \alias{biNetwalk}
 \title{Bipartite Random Walk}
 \usage{
-biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), setSeeds = NULL,
+biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
   file = NULL, restart = 0.8, parallel = TRUE, multicores = NULL,
   verbose = T, weight = FALSE)
 }
@@ -17,7 +17,7 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), setSeeds = NULL,
 
 \item{normalise:}{Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)}
 
-\item{setSeeds:}{seeds file}
+\item{dataSeed:}{seeds file}
 
 \item{file:}{Accepts file for seeds}
 
@@ -29,6 +29,16 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), setSeeds = NULL,
 }
 \description{
 Randomm walk with restart on Bipartite networks
+}
+\examples{
+\donttest{
+data(Enzyme)
+A <- enzyme_ADJ
+S = enzyme_Csim
+S1 = enzyme_Gsim
+g1 = graph.incidence(A)
+M3 <- biNetwalk(g1,s1=S,s2=S1,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+}
 }
 \references{
 \itemize {

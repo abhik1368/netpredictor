@@ -2,11 +2,29 @@
 % Please edit documentation in R/functions.R
 \name{plot.Community}
 \alias{plot.Community}
-\title{plotting Communities}
+\title{plot.Communities}
 \usage{
 \method{plot}{Community}(gc, cols = 3)
 }
 \description{
 This uses an object of getCommuntiy class and extracts parameters to plot current communities.
+}
+\details{
+plotting Communities
+}
+\examples{
+\donttest{
+## Run the Bipartite Random walk with Restart
+Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+## Get the significant vertices which are in columns
+Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+## Get the graph for plotting commnuties
+g <- Z$cgraph
+gp <- get.Communities(g)
+## Total number of communities
+length(gp)
+## Plot the communities with 5 columns
+plot.Community(gp,cols=5)
+}
 }
 

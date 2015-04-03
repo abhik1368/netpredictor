@@ -1,17 +1,17 @@
 
-#' Adamic-Adar index
-#' @description Similarity measure counting common neighbors weighted by their degrees.
-#' @param graph: a igraph object
+#" Adamic-Adar index
+#" @description Similarity measure counting common neighbors weighted by their degrees.
+#" @param graph: a igraph object
 aaSim <- function(graph){
     score <- igraph::similarity.invlogweighted(graph)
     return (score)
 }
 
-#' Average commute time
-#' @description This function calculates vertex similarity based on the average number of
-#' steps, that random walker on the graph needs to get from one vertex to
-#' another.
-#' @param graph: a igraph object
+## Average commute time
+## @description This function calculates vertex similarity based on the average number of
+## steps, that random walker on the graph needs to get from one vertex to
+## another.
+## @param graph: a igraph object
 
 
 actSim <- function(graph){
@@ -27,29 +27,29 @@ actSim <- function(graph){
     return (score)
 }
 
-#' Common neighbors vertex similarity
-#' @description Similarity measure counting number of common neighbors.
-#' @param graph: a igraph object
+## Common neighbors vertex similarity
+## @description Similarity measure counting number of common neighbors.
+## @param graph: a igraph object
 
 cnSim <- function(graph){
     score <- igraph::cocitation(graph)
     return (score)
 }
 
-#' Jaccard Index similarity
-#' @description Similarity measure based on jaccard index.This is a simple wrapper to an \pkg{igraph} function \code{\link[igraph]{similarity.jaccard}},
+## Jaccard Index similarity
+## @description Similarity measure based on jaccard index.This is a simple wrapper to an \pkg{igraph} function \code{\link[igraph]{similarity.jaccard}},
 #  which counts the proportion of neighbours shared by two vertices.
-#' @param graph: a igraph object
+## @param graph: a igraph object
 
 jcSim <- function(graph){
     score <- igraph::similarity.jaccard(graph)
     return (score)
 }
 
-#' Dice similarity
-#' @description Similarity measure based on dice similarity. This function measures a relative size of an intersection of neighbors sets
+## Dice similarity
+## @description Similarity measure based on dice similarity. This function measures a relative size of an intersection of neighbors sets
 #  of two vertices.
-#' @param graph: a igraph object
+## @param graph: a igraph object
 
 diceSim <- function(graph){
     score <- igraph::similarity.dice(graph)
@@ -57,10 +57,10 @@ diceSim <- function(graph){
 }
 
 
-#' Katz Index similarity
-#' @description Similarity measure based on all paths in a graph. This function counts all the paths between given pair of nodes, with shorter
+## Katz Index similarity
+## @description Similarity measure based on all paths in a graph. This function counts all the paths between given pair of nodes, with shorter
 #  paths counting more heavily. Weigths are exponential.
-#' @param graph: a igraph object
+## @param graph: a igraph object
 
 
 katzSim <- function(graph,beta = 0.001){
@@ -71,10 +71,10 @@ katzSim <- function(graph,beta = 0.001){
     diag(score) <- 0
     return (score)
 }
-#' Pseudoinverse of the Laplacian
-#' @description Similarity measure based solely on the pseudoinverse of the Laplacian matrix. This function counts all the paths between given pair of nodes, with shorter
+## Pseudoinverse of the Laplacian
+## @description Similarity measure based solely on the pseudoinverse of the Laplacian matrix. This function counts all the paths between given pair of nodes, with shorter
 #  paths counting more heavily. Weigths are exponential.
-#' @param graph: a igraph object
+## @param graph: a igraph object
 
 invLSim <- function(graph){
     L <- igraph::graph.laplacian(graph)
@@ -84,9 +84,9 @@ invLSim <- function(graph){
     return (score)
 }
 
-#' Geodesic distance vertex similarity
-#' @description This function calculates similarity score for vertices based on the shortest paths between them.
-#' @param graph: a igraph object
+## Geodesic distance vertex similarity
+## @description This function calculates similarity score for vertices based on the shortest paths between them.
+## @param graph: a igraph object
 
 distSim <- function(graph){
     score <- igraph::shortest.paths(graph)
@@ -96,19 +96,19 @@ distSim <- function(graph){
     return (score)
 }
 
-#' Cosine vertex similarity/ Salton index
-#' @description This function measures the cosine of the angle between columns of
-#' the adjacency matrix, corresponding to given nodes.
-#' @param graph: a igraph object
+## Cosine vertex similarity/ Salton index
+## @description This function measures the cosine of the angle between columns of
+## the adjacency matrix, corresponding to given nodes.
+## @param graph: a igraph object
 
 cosineSim <- function(graph){
     x <- igraph::get.adjacency(graph)
     return (x%*%t(x)/(sqrt(rowSums(x^2) %*% t(rowSums(x^2)))))
 }
 
-#' Preferential attachment vertex similarity
-#' @description This function calculates similarity score for vertices based on their degrees.
-#' @param graph: a igraph object
+## Preferential attachment vertex similarity
+## @description This function calculates similarity score for vertices based on their degrees.
+## @param graph: a igraph object
 paSim <- function(graph){
     deg <- igraph::degree(graph)
     score <- outer(deg,deg)
@@ -116,13 +116,13 @@ paSim <- function(graph){
     return (score)
 }
 
-#' Local Paths Index
-#' @description This function counts the number of two-paths and three-paths between nodes,
+## Local Paths Index
+## @description This function counts the number of two-paths and three-paths between nodes,
 #  with three-paths weighted by a parameter \eqn{\epsilon}.
-#' @param graph: igraph object
-#' @param eps: epsilon parameter
-#' @return a matrix object of similarity scores.
-#' @param graph: a igraph object
+## @param graph: igraph object
+## @param eps: epsilon parameter
+## @return a matrix object of similarity scores.
+## @param graph: a igraph object
 
 lpSim <- function(graph,eps = 0.01){
     A <- igraph::get.adjacency(graph)
@@ -131,10 +131,10 @@ lpSim <- function(graph,eps = 0.01){
     return (score)
 }
 
-#' Leicht-Holme-Newman Index
-#' @description This index gives high similarity to node pairs that have many common
-#' neighbors compared not to the possible maximum, but to the expected number of such neighbors
-#' @param graph: a igraph object
+## Leicht-Holme-Newman Index
+## @description This index gives high similarity to node pairs that have many common
+## neighbors compared not to the possible maximum, but to the expected number of such neighbors
+## @param graph: a igraph object
 lhnSim <- function(graph){
     deg <- igraph::degree(graph)   
     score <- igraph::cocitation(graph)
@@ -142,10 +142,10 @@ lhnSim <- function(graph){
     return (score)
 }
     
-#' Hub Depressed Index
-#' @description This measures assigns lower scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
-#  by the higher of those vertices' degrees.
-#' @param graph: a igraph object
+## Hub Depressed Index
+## @description This measures assigns lower scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
+#  by the higher of those vertices# degrees.
+## @param graph: a igraph object
 
 hdiSim <- function(graph){
     deg <- igraph::degree(graph)
@@ -156,10 +156,10 @@ hdiSim <- function(graph){
     return (score)
 }
 
-#' Hub promoted Index
-#' @description This measures assigns higher scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
-#  by the lower of those vertices' degrees.
-#' @param graph: a igraph object
+## Hub promoted Index
+## @description This measures assigns higher scores to links adjacent to hubs (high degree nodes). It counts common neighbors of two vertices and weigths the result
+#  by the lower of those vertices# degrees.
+## @param graph: a igraph object
 
 hpiSim <- function(graph){
     deg <- igraph::degree(graph)
@@ -170,11 +170,11 @@ hpiSim <- function(graph){
     return (score)
 }
 
-#' Similarity measure based on resource allocation process.
-#' @param graph: igraph object 
-#' @description This function counts the number of common neighbours weighted by the inverse
-#' of their degrees.
-#' @param graph: a igraph object
+## Similarity measure based on resource allocation process.
+## @param graph: igraph object 
+## @description This function counts the number of common neighbours weighted by the inverse
+## of their degrees.
+## @param graph: a igraph object
 
 raSim <- function(graph){
     
@@ -245,7 +245,7 @@ match_method <- function(method){
 
 unetSim<- function(graph, method){
     if (class(graph) != "igraph"){
-        stop("The function applies to 'igraph' object.\n")
+        stop("The function applies to #igraph# object.\n")
     }
     if (igraph::is.directed(graph))
         stop("Graph has to be undirected")

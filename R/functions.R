@@ -1,5 +1,5 @@
 
-#' Performing jaccard similarity between two entities
+## Performing jaccard similarity between two entities
 jaccard.sim <- function(df){
     a <- df %*% t(df)
     b <- df %*% (1 - t(df))
@@ -14,7 +14,7 @@ jaccard.sim <- function(df){
     return (s)
 }
 
-#' Normalizing the matrix based on matrix columns
+## Normalizing the matrix based on matrix columns
 
 colNorm <- function(PTmatrix){
     if (ncol(PTmatrix) > 1){
@@ -32,10 +32,10 @@ colNorm <- function(PTmatrix){
 }
 
 
-#' Get the transition matrix for a Bipartite Graph. Input a sequence similarity matrix (s1),
-#' chemical similarity matrix (s2) and drug target adjacency matrix (g1) where rows are 
-#' protein targets and columns as Drugs.
-#' @export
+## Get the transition matrix for a Bipartite Graph. Input a sequence similarity matrix (s1),
+## chemical similarity matrix (s2) and drug target adjacency matrix (g1) where rows are 
+## protein targets and columns as Drugs.
+## @export
 
 tMat <- function(g1,s1,s2,normalise="laplace"){
     g1 <- t(g1)
@@ -65,9 +65,6 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
         MTT <- D3 %*% seq %*% D3
         D4  <- diag(x=(rowSums(drug.similarity.final))^(-0.5))
         MDD  <- D4 %*% csim %*% D4 
-        print (class(MTD))
-        print (class(MTT))
-        print (class(MDD))
         M1<-cbind(MTT,t(MTD))
         M2<-cbind(MTD,MDD)
         M <- rbind(M1,M2)
@@ -99,10 +96,10 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
     }
 }
 
-#' performing random walk with restart both in parallel and non-parallel way.
-#' It takes the transition matrix W the initial matrix P0 matrix parameter for parallization
-#' and the number of cores to run parallelisation on. Also a restart parameter is available as r 
-#' to get better results with different datasets one needs to tune restart parameter r.
+## performing random walk with restart both in parallel and non-parallel way.
+## It takes the transition matrix W the initial matrix P0 matrix parameter for parallization
+## and the number of cores to run parallelisation on. Also a restart parameter is available as r 
+## to get better results with different datasets one needs to tune restart parameter r.
 
 rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
     # run on sparse matrix package
@@ -112,7 +109,6 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
         if(par==TRUE){
             flag_parallel <- dCheckParallel(multicores=multicores, verbose=T)
             message(paste(c("Executing parallel:")))
-            print (flag_parallel)
             
             PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
             if(flag_parallel){
@@ -135,7 +131,6 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
                 })
                 
             }
-            print (dim(PTmatrix))
            return(PTmatrix)
         } else if(flag_parallel==F){
             message(paste(c("Executing in non parallel way .. \n")))
@@ -170,7 +165,7 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
 #' @name get.Communities
 #' @export 
 
-get.Communities<- function(g,num.nodes = 3,calgo = walktrap.community){
+get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }
@@ -215,8 +210,22 @@ get.Communities<- function(g,num.nodes = 3,calgo = walktrap.community){
 }
 
 #' plotting Communities 
-#' @name plot.Community
+#' @title plot.Communities
 #' @description This uses an object of getCommuntiy class and extracts parameters to plot current communities. 
+#' @examples
+#' \donttest{
+#' ## Run the Bipartite Random walk with Restart
+#' Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+#' ## Get the significant vertices which are in columns
+#' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+#' ## Get the graph for plotting commnuties
+#' g <- Z$cgraph
+#' gp <- get.Communities(g)
+#' ## Total number of communities
+#' length(gp)
+#' ## Plot the communities with 5 columns
+#' plot.Community(gp,cols=5)
+#' }
 #' @export
 
 plot.Community <- function(gc,cols=3) {
