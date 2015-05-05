@@ -2,10 +2,10 @@
 % Please edit documentation in R/functions.R
 \name{bi.weightedProjection}
 \alias{bi.weightedProjection}
+\alias{getScores}
 \title{Projecting Bipartite Networks.}
 \usage{
-bi.weightedProjection(g, vertex = FALSE, mode = "shared-neighbours",
-  weight = FALSE)
+getScores(predictR)
 }
 \arguments{
 \item{g:}{igraph object}

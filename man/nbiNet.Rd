@@ -4,7 +4,7 @@
 \alias{nbiNet}
 \title{Network Based Inference}
 \usage{
-nbiNet(A, lambda = 0.5, alpha = 0.5, S1 = NA, S2 = NA,
+nbiNet(A, alpha = 0.5, lamda = 0.5, s1 = NA, s2 = NA,
   format = c("igraph", "matrix", "pairs"))
 }
 \arguments{
@@ -34,7 +34,7 @@ S = enzyme_Csim
 S1 = enzyme_Gsim
 g1 = graph.incidence(A)
 ## other format available \\code{format = c("igraph","matrix","pairs")}
-M2 <- nbiNet(A, lambda=0.5, alpha=0.5, S1=S, S2=S1,format = "matrix")
+M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S, S2=S1,format = "matrix")
 }
 }
 \references{

@@ -9,9 +9,9 @@ uNetwalk(ig, normalise = c("row", "column", "laplacian", "none"),
   verbose = T)
 }
 \arguments{
-\item{ig}{: igraph object}
+\item{ig:}{igraph object}
 
-\item{normalise}{: normalise method}
+\item{normalise:}{normalise method}
 
 \item{dataSeed:}{vector or dataframe}
 

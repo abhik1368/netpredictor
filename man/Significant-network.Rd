@@ -33,6 +33,7 @@ Significance of Bipartite networks
 }
 \examples{
 \donttest{
+data(Enzyme)
 A <- enzyme_ADJ
 S = enzyme_Csim
 S1 = enzyme_Gsim

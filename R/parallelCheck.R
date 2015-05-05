@@ -39,7 +39,6 @@ dCheckParallel <- function (multicores=NULL, verbose=T)
             if(all(tmp)){
                 doMC::registerDoMC()
                 cores <- foreach::getDoParWorkers()
-                print (cores)
                 if(is.null(multicores)){
                     multicores <- max(1, ceiling(cores))
                 }else if(is.na(multicores)){
@@ -50,7 +49,6 @@ dCheckParallel <- function (multicores=NULL, verbose=T)
                     multicores <- as.integer(multicores)
                 }
                 doMC::registerDoMC(multicores) # register the multicore parallel backend with the 'foreach' package
-                print (foreach::getDoParWorkers())
                 if(verbose){
                     message(sprintf("\tdo parallel computation using %d cores ...", multicores, as.character(Sys.time())), appendLF=T)
                 }

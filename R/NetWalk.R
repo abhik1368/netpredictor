@@ -4,8 +4,8 @@
 #' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
 #' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
 #' Parallalization is implemented with multicores. Parallization is done using foreach package. 
-#' @param ig : igraph object
-#' @param normalise : normalise method 
+#' @param ig: igraph object
+#' @param normalise: normalise method 
 #' @param dataSeed: vector or dataframe
 #' @param restart: restart probability parameter
 #' @param parallel: to execute in parallel either TRUE or FALSE
@@ -55,8 +55,6 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
         c <- restart
     }
     normalise <- match.arg(normalise)
-    #normalise.affinity.matrix <- match.arg(normalise.affinity.matrix)
-    
 
     if ("weight" %in% list.edge.attributes(ig)){
         adjM <- get.adjacency(g, type="both", attr="weight", edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
@@ -243,11 +241,11 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' S1 = enzyme_Gsim
 #' g1 = graph.incidence(A)
 #' ## other format available \code{format = c("igraph","matrix","pairs")}
-#' M2 <- nbiNet(A, lambda=0.5, alpha=0.5, S1=S, S2=S1,format = "matrix")
+#' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S, S2=S1,format = "matrix")
 #' } 
 #' @export
 
-nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","matrix","pairs")) {
+nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","matrix","pairs")) {
     
     startT <- Sys.time()
     
@@ -259,9 +257,7 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
     }
     else if (format == "matrix"){
         
-        if(is.data.frame(A)){
-            adjM <- as.matrix(A)
-        }
+        adjM <- as.matrix(A)
     } 
     else if(format == "pairs") {
         d<- graph.data.frame(A) ## only accepts pairs file
@@ -274,11 +270,11 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
     
     n = nrow(adjM)
     m = ncol(adjM)
-    if (nrow(S2) != m || ncol(S2) != m) {
-        stop("The matrix S1 should be an m by m matrix with same number of columns as A.")
+    if (nrow(s2) != m || ncol(s2) != m) {
+        stop("The matrix s2 should be an m by m matrix with same number of columns as A.")
     }
-    if (nrow(S1) != n || ncol(S1) != n) {
-        stop("The matrix S should be an n by n matrix with same number of rows as A")
+    if (nrow(s1) != n || ncol(s1) != n) {
+        stop("The matrix s1 should be an n by n matrix with same number of rows as A")
     }
     
     Ky <- diag(1/colSums(adjM))
@@ -286,8 +282,8 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
     
     kx <- rowSums(adjM)
     kx[is.infinite(kx) | is.na(kx)] <- 0
-    Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lambda) * 
-                 matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lambda))
+    Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lamda) * 
+                 matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lamda))
     Nx[is.infinite(Nx) | is.na(Nx)] <- 0 
     
     cl <- makeCluster(detectCores())
@@ -297,16 +293,13 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
     W <- Nx * W
     rownames(W) <- rownames(adjM)
     colnames(W) <- rownames(adjM)
-    X5 <- suppressWarnings(snow::parMM(cl, adjM, S2))
+    X5 <- suppressWarnings(snow::parMM(cl, adjM, s2))
     X6 <- suppressWarnings(snow::parMM(cl, X5, t(adjM)))
     X7 <- suppressWarnings(snow::parMM(cl, adjM, matrix(1, nrow=m, ncol=m)))
     X8 <- suppressWarnings(snow::parMM(cl, X7, t(adjM)))
     S3 <- X6 / X8
-    
-    #P1 <- adjM %*% S1 %*% t(adjM)
-    #P2 <- adjM %*% matrix(1, nrow=m, ncol=m) %*% t(adjM)
-    #S3 <- P1 / P2
-    W  <- W * ((alpha * S1) + ((1-alpha) * S3))
+
+    W  <- W * ((alpha * s1) + ((1-alpha) * S3))
     
     W[is.nan(W)] <- 0
     rM <-  suppressWarnings(snow::parMM(cl,W,adjM))
@@ -316,14 +309,14 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
     runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
     message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
     message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
-    invisible (t(rM))
+    invisible (rM)
 }
 
 
 #' Randomm walk with restart on Bipartite networks
 #' @title Bipartite Random Walk
 #' @name biNetwalk
-#' @param g1: igraph object
+#' @param g1: Bipartite graph igraph object.
 #' @param s1: Accepts a matrix object of similarity scores for targets.
 #' @param s2: Accepts a matrix object similarity scores for compounds.
 #' @param normalise: Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
@@ -341,10 +334,10 @@ nbiNet <- function (A, lambda=0.5, alpha=0.5, S1=NA, S2=NA,format = c("igraph","
 #' \donttest{
 #' data(Enzyme)
 #' A <- enzyme_ADJ 
-#' S = enzyme_Csim 
+#' S2 = enzyme_Csim 
 #' S1 = enzyme_Gsim
 #' g1 = graph.incidence(A)
-#' M3 <- biNetwalk(g1,s1=S,s2=S1,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+#' M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
 #' }
 #' @export
 
@@ -391,7 +384,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
     adjM <- as.matrix(adjM)
     # get the transition matrix
     W = tMat(adjM,s1,s2,normalise=normalise)
-    
+    message(sprintf("got the transition matrix for RWR"))
     if(is.null(dataSeed) && is.null(file)){
         
         M<-Matrix(adjM)
@@ -487,6 +480,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
 #' @name Significant network
 #' @examples
 #' \donttest{
+#' data(Enzyme)
 #' A <- enzyme_ADJ 
 #' S = enzyme_Csim 
 #' S1 = enzyme_Gsim
@@ -659,35 +653,34 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     invisible(result)
 }
 
-#' Heterogenous Graph based Inference 
-#' @title  Heterogenous Graph based Inference on Bipartite Network
-#' @description Peforms computation of heterogenous graph inference explained by Wang etal.
-#' @param g1 : igraph object
+#' NetCombo
+#' @title  NetCombo
+#' @description Peforms computation three different algorithms like random walk, network based inference and heterogenous based inference and finally computes the sum of the predicted score and generates the final matrix.
+#' @param g1: igraph object
 #' @param s1: Accepts a matrix object of similarity scores for targets.
 #' @param s2: Accepts a matrix object similarity scores for compounds.
-#' @param steps : Number of steps to iterate.
-#' @param alpha : decay factor initialized to 0.4.
-#' @name hgviNet
-#' @references  
-#' \itemize{
-#'   \item Wang W, et al. Drug target predictions based on heterogeneous graph inference. Pac. Symp. Biocomput. 2013:53-64
-#' }
-#' #' @examples
+#' @param nbi.alpha: alpha value for network based inference.
+#' @param nbi.lamda: lamda value for network based inference.
+#' @param norm: normalization of matrices options are "laplace" or "none".
+#' @param par: parallel execution for RWR.
+#' @return Matrix object with sum score values. 
+#' @name netCombo
+#' @examples
 #' \donttest{
-#' A <- enzyme_ADJ 
-#' S = enzyme_Csim 
-#' S1 = enzyme_Gsim
+#' data(Enzyme)
+#' A = enzyme_ADJ 
+#' S1 = as.matrix(enzyme_Gsim)
+#' S2 = as.matrix(enzyme_Csim)
 #' g1 = graph.incidence(A)
-#' M1 <- hgviNet(A,s1=S,s2=S1,alpha=0.4,steps=20)
+#' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
 #' }
 #' @export
 
-hgviNet <- function(g1,s1,s2,alpha=0.4,steps=20) {
+
+netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",par=TRUE) {
     
     startT <- Sys.time()
     now <- Sys.time()
-    message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T) 
-    
     if (!exists('s1') || !exists('s2')){
         stop("You must submit s1 and s2 matrices.\n")
     }
@@ -695,41 +688,263 @@ hgviNet <- function(g1,s1,s2,alpha=0.4,steps=20) {
     if (class(g1) != "igraph"){
         stop("The function must apply to either 'igraph' object.\n")
     }
-    
     if (!bipartite.mapping(g1)$res){
-        stop("The function applies to bipartite graphs.\n")
+        stop("The function applies to bipartite graphs only.\n")
     }
-    adjM <- igraph::get.incidence(g1, attr=NULL, names=T)
-    D1  <- diag(x=(rowSums(adjM))^(-0.5))
-    D2  <- diag(x=(colSums(adjM))^(-0.5))
- 
-    WRT <- D1 %*% adjM %*% D2
     
-    D3  <- diag(x=(rowSums(s1))^(-0.5))
-    WTT <- D3 %*% s1 %*% D3
+    A <- as.matrix(get.incidence(g1))
+    message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T) 
+    message(sprintf("Running computation for RWR..\n"))
+    Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",parallel=par,verbose=T)
     
-    D4  <- diag(x=(rowSums(s2))^(-0.5))
-    WDD  <- D4 %*% s2 %*% D4 
-    
-    cl <- makeCluster(detectCores())
 
-    WT = suppressWarnings(snow::parMM(cl, WDD , t(WRT)))
+    message(sprintf("Running computation for network based inference..\n"))
+    Q2 = nbiNet(A,lamda=nbi.lamda,alpha=nbi.alpha,s1=as.matrix(s1),s2=as.matrix(s2),format = "matrix")
     
-    for ( i in 1:steps){
-        
-        WI = suppressWarnings(alpha*(snow::parMM(cl,WT,WTT)) + (1-alpha)*t(WRT))
-        WT = suppressWarnings(snow::parMM(cl, WDD , WI))        
-        i = i+1
+    if (exists("Q1") && exists("Q2")){
+        M <- Q1+Q2
+        return (M)
     }
-    endT <- Sys.time()
-    stopCluster(cl)
-    runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
-    message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
-    message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
-    rownames(WI) <- colnames(adjM)
-    colnames(WI) <- rownames(adjM)
-    return (as.matrix(WI))
+    
 }
 
+#' get the performance of the link Prediction algorithms. 
+#' @title  Link Prediction Performance
+#' @description This function samples links and removies links from the adjacency matrix and predicts them and calculates  area under accumulation curve, AUC, bedroc, and Enrichment factor. 
+#' @param S1 : Sequence similarity matrix object
+#' @param A : Drug target association matrix
+#' @param S2: Accepts a matrix object similarity scores for compounds.
+#' @param relinks: Number of links to remove randomly from the input matrix.
+#' @param numT: Frequency of the number of targets.
+#' @param Calgo: Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo". 
+#' @param norm: normalization of matrices options are "laplace" or "none".   
+#' @name netPredPerf
+#' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
+#' \itemize{
+#'   \item Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.
+#'   \item Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.
+#' }
+#' @examples
+#' \donttest {
+#' data(Enzyme)
+#' A = enzyme_ADJ 
+#' S1 = enzyme_Gsim 
+#' S2= enzyme_Csim
+#' m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+#' }
+#' @export
 
 
+netPredPerf <- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")){
+    
+    auctop = numeric()
+    aucc = numeric()
+    bdr  = numeric()
+    efc   = numeric()
+    ranks = numeric()
+    totallinks = sum(A)
+    
+    m = dim(A)[1] ## rows for targets 
+    n = dim(A)[2] ## columns for drugs
+    
+    if (!exists('S1') || !exists('S2')){
+        stop("You must submit s1 and s2 matrices.\n")
+    }
+    
+    if (nrow(S1)!=m | ncol(S1) != m){
+        stop("Your number of targets does not match with target similarity matrix.\n")
+    }
+    
+    if (nrow(S2)!=n | ncol(S2) != n){
+        stop("Your number of targets does not match with target similarity matrix.\n")
+    }
+    
+    
+    ## Get the name of the algorithm.
+    algo <- match.arg(Calgo)
+    g1 <- graph.incidence(A)
+    eg <- get.edgelist(g1)
+    c <- data.frame(table(eg[,2]))
+    c <- c[c$Freq>numT,]
+    
+    drugnames <- unique(as.character(c$Var1))
+    
+    ids <- which(eg[,2] %in% drugnames)
+    re <- eg[sample(ids,size = relinks,replace=FALSE),]
+    
+    
+    if (totallinks <= relinks){
+        stop("Total links removed is less than equal given links to be removes. Give a sensible value.")
+    }
+        
+    SampledGraph <- g1
+    for (i in 1:dim(re)[1])
+    {
+        if (are.connected(SampledGraph, re[i,1], re[i,2])) 
+            SampledGraph <- delete.edges(SampledGraph, E(SampledGraph, P=c(re[i,1], re[i,2])))
+    }
+    g1 = SampledGraph
+    Sg_t <- get.incidence(SampledGraph)
+    
+    #Sg_t <- randomizeMatrix(Sg_t,null.model = "frequency",iterations = 1000)
+    
+    #mat<-tMat(Sg_t,as.matrix(S1),as.matrix(S2),normalise="laplace")
+    #mat[is.na(mat)] <- 0
+    
+    drugs <- re[,2]
+    #N_M <- Sg_t[,colnames(Sg_t) %in% drugs]
+    
+    message(sprintf("Detected (%s) drugs & (%s) proteins with (%s) interactions...",n,m,totallinks))
+    message(sprintf("Running prediction for (%s) links removed using (%s) .. ",as.character(relinks),as.character(algo)))
+    
+    if (algo == "rwr"){
+        #par="True"
+        message(sprintf("Running RWR Algorithm"))
+        mat = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T,multicores=4)
+        #mat <-biNetwalk((mat,N_M,par=TRUE,r=0.7)
+        predictR <- mat[,colnames(mat) %in% drugs]
+    }
+    else if (algo == "nbi"){
+        message(sprintf("Running NBI Algorithm"))
+        #S1 = S1[rownames(S1) %in% rownames(N_M),colnames(S1) %in% rownames(N_M)]
+        #S2 = S2[rownames(S2) %in% colnames(N_M),colnames(S2) %in% colnames(N_M)]   
+        mat <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
+        predictR <- mat[,colnames(mat) %in% drugs]
+    }
+    
+    else if(algo == "netcombo"){
+        message(sprintf("Running NetCombo Algorithm"))
+        #par="True"
+        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T)
+        mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
+        mat = mat1+mat2
+        predictR <- mat[,colnames(mat) %in% drugs]
+    }
+    
+    
+    
+    s1<-predictR[1:m,]
+    s1<- scale(s1, center=FALSE, scale=colSums(s1,na.rm=TRUE))
+    s1[is.na(s1)] <- 0
+    test <- data.frame(re)
+    for (dis in 1:dim(s1)[2]){
+        drugname = colnames(s1)[dis]
+        subfr <- test[test$X2==drugname,]
+        p1name<-as.character(subfr$X1)
+        id = which(rownames(s1) %in% p1name)
+        clabel <- rep(0,m)
+        clabel[id] <- 1
+        res = cbind(s1[,dis],clabel)
+        colnames(res)[1] <- "score"
+        
+        d <- res[order(-res[,1]),]
+        ac <- auac(d[,1], d[,2])
+        au <- auc(d[,1], d[,2])
+        at <-  auac(d[,1], d[,2],top=0.1)
+        bd <- bedroc(d[,1], d[,2])
+        ef <- enrichment_factor(d[,1], d[,2],top=0.1)
+        aucc <- c(aucc, ac)
+        bdr <- c(bdr,bd)
+        efc <- c(efc,ef) 
+        auctop <- c(auctop,at)
+
+    }
+    
+    scores = c(list(aucc = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
+    return (scores)
+}
+
+#' Get top predicted results. 
+#' @title  Get Top Results
+#' @description The function returns the given top number of predicted results along with true interactions.
+#' @param A : Drug target association matrix.
+#' @param P: Drug target predicted matrix.
+#' @param top: top number of predicted targets.
+#' @param druglist: It accepts a vector of drugnames for which results will return
+#' @name netPredPerf
+#' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
+#' @examples
+#' \donttest {
+#' data(Enzyme)
+#' A = enzyme_ADJ 
+#' S1 = enzyme_Gsim 
+#' S2= enzyme_Csim
+#' ## Running the netcombo algorithm.
+#' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
+#' result = getTopresults(A,P,top=10,druglist=NULL)
+#' ## Getting result from a drug list.
+#' drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
+#' result = getTopresults(A,P,top=10,druglist=drugs)
+#' }
+#' @export
+
+getTopresults <- function(A,P,top=10,druglist=NULL){
+    
+    startT <- Sys.time()
+    now <- Sys.time()
+    
+    `%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
+    
+    A <- A[,colnames(A) %in% colnames(P)]
+    
+    if (length(rownames(A)) <=0 ){
+        stop("Drugs names doesnt match for Predicted matrix and Original Matrix")
+    }
+    
+    g1 <- graph.incidence(A)
+    
+    el = data.frame(get.edgelist(g1))
+    
+    if (is.null(druglist)){
+        drugnames = colnames(P)
+        fr <- data.frame()
+        for (i in 1:length(drugnames)){
+            lt = el[el$X2==drugnames[i],]
+            tproteins = as.character(lt$X1)
+            if (length(tproteins) > 0 ){
+                d <- P[order(-P[,i]),]
+                pnames = rownames(d)
+                score <- as.numeric(d[,i])
+                drug <- drugnames[i]
+                result <- data.frame(cbind(drug,pnames,score))
+                tp <- result[result$pnames %in% tproteins,]
+                tp$type <- "True Interactions"
+                pi = result[result$pnames %not in% tproteins,]
+                pi = pi[1:top,]
+                pi$type = "Predicted Interactions"    
+                r <- rbind(tp,pi)
+                fr <- rbind(fr,r)
+            }
+            
+        }    
+    
+    }
+    
+    else {
+        drugnames = druglist
+        fr <- data.frame()
+        for (i in 1:length(drugnames)){
+            
+            lt = el[el$X2==drugnames[i],]
+            tproteins = as.character(lt$X1)
+            if (length(tproteins) > 0 ){
+                print (drugnames[i])
+                d <- P[order(-P[,colnames(P) %in% drugnames[i]]),]
+                pnames = rownames(d)
+                score <- as.numeric(d[,colnames(P) %in% drugnames[i]])
+                drug <- drugnames[i]
+                result <- data.frame(cbind(drug,pnames,score))
+                tp <- result[result$pnames %in% tproteins,]
+                tp$type <- "True Interactions"
+                pi = result[result$pnames %not in% tproteins,]
+                pi = pi[1:top,]
+                pi$type = "Predicted Interactions"            
+                r <- rbind(tp,pi)
+                fr <- rbind(fr,r)
+            }
+        } 
+    }
+    
+    invisible(fr)
+}
+ 

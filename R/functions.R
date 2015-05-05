@@ -38,10 +38,12 @@ colNorm <- function(PTmatrix){
 ## @export
 
 tMat <- function(g1,s1,s2,normalise="laplace"){
+    
+    
     g1 <- t(g1)
-    seq<-(s1)          ## sequence similairty matrix normalised between 0 and 1 
+    seq<-as.matrix(s1)          ## sequence similairty matrix normalised between 0 and 1 
     drugProt <- as.matrix(g1)           ## drug target matrix   
-    csim<-(s2)         ## drug similarity matrix normalised between 0 and 1
+    csim<-as.matrix(s2)         ## drug similarity matrix normalised between 0 and 1
     new.drug_drug<- drugProt %*% t(drugProt)    
     
     new.prot_prot<- t(drugProt) %*% drugProt
@@ -55,8 +57,6 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
     # Normalizing the matrices with equal weights
     drug.similarity.final<- as.matrix(0.5*(csim)+0.5*(norm_drug))
     prot.similarity.final<- as.matrix(0.5*(seq)+0.5*(norm_prot))
-    #print (prot.similarity.final)
-    #print (rowSums(prot.similarity.final)) 
     if(normalise == "laplace"){
         D1  <- diag(x=(rowSums(drugProt))^(-0.5))
         D2  <- diag(x=(colSums(drugProt))^(-0.5))   
@@ -112,7 +112,6 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
             
             PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
             if(flag_parallel){
-                j <- 1
                 pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
                 PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine="cbind"), {
                     P0 <- P0matrix[,j]
@@ -537,7 +536,43 @@ bi.BetweenessCentrality <- function(g,SM=TRUE){
 #'   }
 #' @return Returns a igraph object of the projected matrix with edge weights.
 #'
-
+getScores <- function(predictR){
+    auctop = numeric()
+    aucc = numeric()
+    bdr = numeric()
+    efc = numeric()
+    ranks = numeric()
+    s1<-predictR[1:m,]
+    s1<- scale(s1, center=FALSE, scale=colSums(s1,na.rm=TRUE))
+    s1[is.na(s1)] <- 0
+    colnames(s1) <- colnames(N_M)
+    test <- data.frame(re)
+    for (dis in 1:dim(s1)[2]){
+        drugname = colnames(s1)[dis]
+        subfr <- test[test$X2==drugname,]
+        p1name<-as.character(subfr$X1)
+        id = which(rownames(s1) %in% p1name)
+        clabel <- rep(0,m)
+        clabel[id] <- 1
+        res = cbind(s1[,dis],clabel)
+        colnames(res)[1] <- "score"
+        
+        d <- res[order(-res[,1]),]
+        ac <- auac(d[,1], d[,2])
+        au <- auc(d[,1], d[,2])
+        at <-  auac(d[,1], d[,2],top=0.1)
+        bd <- bedroc(d[,1], d[,2])
+        ef <- enrichment_factor(d[,1], d[,2],top=0.1)
+        aucc <- c(aucc, ac)
+        bdr <- c(bdr,bd)
+        efc <- c(efc,ef)
+        auctop <- c(auctop,at)
+        
+    }
+    
+    scores = c(list(aucc = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
+    return (scores)
+}
 
 bi.weightedProjection <- function(g,vertex=FALSE,mode='shared-neighbours',weight=FALSE){
     if (class(g) != "igraph"){
@@ -670,6 +705,7 @@ getChEMBLSmi <- function(id, parallel = 5){
     smiles <- gsub("[\r\n]", "", SMILES)
     return(smiles)
 }
+
 
 
 getChEMBLSdf = function (id, parallel = 5) {

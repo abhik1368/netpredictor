@@ -9,7 +9,7 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
   verbose = T, weight = FALSE)
 }
 \arguments{
-\item{g1:}{igraph object}
+\item{g1:}{Bipartite graph igraph object.}
 
 \item{s1:}{Accepts a matrix object of similarity scores for targets.}
 
@@ -34,10 +34,10 @@ Randomm walk with restart on Bipartite networks
 \donttest{
 data(Enzyme)
 A <- enzyme_ADJ
-S = enzyme_Csim
+S2 = enzyme_Csim
 S1 = enzyme_Gsim
 g1 = graph.incidence(A)
-M3 <- biNetwalk(g1,s1=S,s2=S1,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
 }
 }
 \references{
