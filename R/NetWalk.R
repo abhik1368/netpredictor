@@ -875,6 +875,7 @@ netPredPerf <- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcom
 #' ## Getting result from a drug list.
 #' drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
 #' result = getTopresults(A,P,top=10,druglist=drugs)
+#' r <- get.candidate.graph(file=A,affinity=P,top=10,format= "bipart")
 #' }
 #' @export
 
@@ -917,7 +918,7 @@ getTopresults <- function(A,P,top=10,druglist=NULL){
             }
             
         }    
-    
+        
     }
     
     else {
@@ -928,7 +929,6 @@ getTopresults <- function(A,P,top=10,druglist=NULL){
             lt = el[el$X2==drugnames[i],]
             tproteins = as.character(lt$X1)
             if (length(tproteins) > 0 ){
-                print (drugnames[i])
                 d <- P[order(-P[,colnames(P) %in% drugnames[i]]),]
                 pnames = rownames(d)
                 score <- as.numeric(d[,colnames(P) %in% drugnames[i]])
@@ -947,4 +947,4 @@ getTopresults <- function(A,P,top=10,druglist=NULL){
     
     invisible(fr)
 }
- 
+

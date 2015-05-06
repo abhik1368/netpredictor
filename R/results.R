@@ -1,9 +1,11 @@
 #' get.candidate.graph
 #' @title get.candidata.graph
+#' @description returns a pairs file of the top candidates against a given source examples drugs with top candidate targets.
 #' @name get.candidate.graph
 #' @param file: Input seeds file must be 2 column dataframe or matrix of seed nodes of a bipartite graph. 
 #' @param affinity: Computed affinity matrix from Bipartite network.
 #' @param top: retrieving top number of results.
+#' @name get.candidata.graph
 #' @export
 
 get.candidate.graph<- function(file=NULL,affinity=NULL,top=10,format=c("bipart","unipart")){
