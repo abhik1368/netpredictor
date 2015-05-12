@@ -30,11 +30,11 @@ Network based inference on Bipartite networks
 \examples{
 \donttest{
 A <- enzyme_ADJ
-S = enzyme_Csim
-S1 = enzyme_Gsim
+S1 = enzyme_Csim
+S2 = enzyme_Gsim
 g1 = graph.incidence(A)
 ## other format available \\code{format = c("igraph","matrix","pairs")}
-M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S, S2=S1,format = "matrix")
+M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S1, S2=S2,format = "matrix")
 }
 }
 \references{

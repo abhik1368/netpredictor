@@ -209,8 +209,9 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
 }
 
 #' plotting Communities 
-#' @title plot.Communities
+#' @title plot_Community
 #' @description This uses an object of getCommuntiy class and extracts parameters to plot current communities. 
+#' @name plot_Community
 #' @examples
 #' \donttest{
 #' ## Run the Bipartite Random walk with Restart
@@ -223,11 +224,11 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
 #' ## Total number of communities
 #' length(gp)
 #' ## Plot the communities with 5 columns
-#' plot.Community(gp,cols=5)
+#' plot_Community(gp,cols=5)
 #' }
 #' @export
 
-plot.Community <- function(gc,cols=3) {
+plot_Community <- function(gc,cols=3) {
     
     if (class(gc) != "community"){
         stop("The function applies to community object.\n")
@@ -261,7 +262,7 @@ plot.Community <- function(gc,cols=3) {
 
 #' Compute Degree Centrality of the Bipartite Graph
 #' @title Degree centrality for Bipartite Graphs.
-#' @name bi.degreeCentrality
+#' @name get.biDegreeCentrality
 #' @description Measures graph degree centrality for bipartite graphs as well as Unipartite Graphs.The degree centrality of a vertex can be defined as fraction of incident edges over the number of all possible edges.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
 #' @param g: igraph object
@@ -271,8 +272,9 @@ plot.Community <- function(gc,cols=3) {
 #'   }
 #' @return Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
 #' By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
+#' @export
 
-bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
+get.biDegreeCentrality <-function(g,loops=FALSE,SM=TRUE){
         
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
@@ -320,7 +322,7 @@ bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
 
 #' Compute Graph density Bipartite Graph
 #' @title Graph Density for Bipartite graphs.
-#' @name bi.Density
+#' @name get.biDensity
 #' @description Measures graph density  of bipartite graphs . The density captures the fraction of actual present edges over the number of all possible edges, given that multiple edges are not allowed.  
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
 #' @param g: igraph object
@@ -329,8 +331,9 @@ bi.degreeCentrality <-function(g,loops=FALSE,SM=TRUE){
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
 #' @return Returns a list scores of the degree Density the nodes in the rows are scored first followed by column vertices.
+#' @export
 
-bi.Density <-function(g){
+get.biDensity <-function(g){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
@@ -350,10 +353,35 @@ bi.Density <-function(g){
     }
 }
 
-
+bipartite.closeness.centrality <- function(g){
+        if (!is.null(V(g)$type)){
+            # determine maximal raw scores for both vertex subsets
+            mrs_TRUE <- length(V(g)[type==FALSE]) + 2*length(V(g)[type==TRUE]) - 2
+            mrs_FALSE <- length(V(g)[type==TRUE]) + 2*length(V(g)[type==FALSE]) - 2
+            # get sum of all geodesic paths for each vertex
+            sp <- shortest.paths(g)
+            sp[sp==Inf] <- length(V(g))
+            rowsums_shortest_paths <- rowSums(sp)
+            # "bipartite" normalization of scores
+            for (i in V(g)){
+                if (V(g)[i]$type==TRUE){
+                    V(g)[i]$closeness.centrality <- mrs_TRUE/rowsums_shortest_paths[i+1]
+                }
+                else{
+                    V(g)[i]$closeness.centrality <- mrs_FALSE/rowsums_shortest_paths[i+1]
+                }
+            }
+            # return value as list
+            return(list("Bipartite.Closeness.Centrality"=V(g)$closeness.centrality))
+        }
+        else {
+            # boolean vertex attribute 'type' is required
+            cat("vertex attribute <type> is missing")
+        }
+    }
 #' Closeness centrality for bipartite graphs
 #' @title Closeness centrality for bipartite graphs.
-#' @name bi.ClosenessCentrality
+#' @name get.biClosenessCentralit
 #' @description Measures Closeness centrality of bipartite graphs . The closeness centrality of a vertex is inversely proportional to the total geodesic distance to all other vertices.  
 #' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central relative only to other vertices in the same subset.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
@@ -364,9 +392,9 @@ bi.Density <-function(g){
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
 #' @return Returns a list scores of closeness centrality of the nodes.By deafult \code{SM=TRUE} which return the closeness centrality for two different sets of nodes.
-#' 
+#' @export
 
-bi.ClosenessCentrality <-function(g,SM=TRUE){
+get.biClosenessCentrality <-function(g,SM=TRUE){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
@@ -433,7 +461,7 @@ bi.ClosenessCentrality <-function(g,SM=TRUE){
 }
 #' Betweeness centrality for bipartite graphs
 #' @title Betweeness centrality for bipartite graphs.
-#' @name bi.BetweenessCentrality
+#' @name get.biBetweenessCentrality
 #' @description Measures Betweeness centrality of bipartite graphs. The betweenness centrality of a vertex  may be roughly defined as the number of geodesic paths that pass through a given vertex, 
 #' weighted inversely by the total number of equivalent paths between the same two vertices, including those that do not pass through the given vertex.  
 #' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central 
@@ -445,10 +473,10 @@ bi.ClosenessCentrality <-function(g,SM=TRUE){
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
 #'   }
 #' @return Returns a list scores of closeness centrality of the nodes. By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
-#'
+#' @export
 
 
-bi.BetweenessCentrality <- function(g,SM=TRUE){
+get.biBetweenessCentrality <- function(g,SM=TRUE){
     if (class(g) != "igraph"){
         stop("The function must apply to 'igraph' object.\n")
         
@@ -525,7 +553,7 @@ bi.BetweenessCentrality <- function(g,SM=TRUE){
 
 #' Projecting Bipartite Networks
 #' @title Projecting Bipartite Networks.
-#' @name bi.weightedProjection
+#' @name get.biWeightedProjection
 #' @description Projecting the Bipartite Network based on the vertex type (\code{TRUE} or \code{FALSE}).The mode \code{"shared-neighbours"} adds the number of shared neighbours in the bipartite graph to the edge linking two neighbours in the monopartite projection. 
 #' \code{"newman"} adopts the weighting scheme presented by Newman (2001), that weighs the contributions of shared neighbours by the size of their linkage profiles minus one.  
 #' @param g: igraph object
@@ -535,46 +563,10 @@ bi.BetweenessCentrality <- function(g,SM=TRUE){
 #'   \item Newman M (2001) Scientific collaboration networks. II. Shortest paths, weighted networks, and centrality. Physical Review E 64.
 #'   }
 #' @return Returns a igraph object of the projected matrix with edge weights.
-#'
-getScores <- function(predictR){
-    auctop = numeric()
-    aucc = numeric()
-    bdr = numeric()
-    efc = numeric()
-    ranks = numeric()
-    s1<-predictR[1:m,]
-    s1<- scale(s1, center=FALSE, scale=colSums(s1,na.rm=TRUE))
-    s1[is.na(s1)] <- 0
-    colnames(s1) <- colnames(N_M)
-    test <- data.frame(re)
-    for (dis in 1:dim(s1)[2]){
-        drugname = colnames(s1)[dis]
-        subfr <- test[test$X2==drugname,]
-        p1name<-as.character(subfr$X1)
-        id = which(rownames(s1) %in% p1name)
-        clabel <- rep(0,m)
-        clabel[id] <- 1
-        res = cbind(s1[,dis],clabel)
-        colnames(res)[1] <- "score"
-        
-        d <- res[order(-res[,1]),]
-        ac <- auac(d[,1], d[,2])
-        au <- auc(d[,1], d[,2])
-        at <-  auac(d[,1], d[,2],top=0.1)
-        bd <- bedroc(d[,1], d[,2])
-        ef <- enrichment_factor(d[,1], d[,2],top=0.1)
-        aucc <- c(aucc, ac)
-        bdr <- c(bdr,bd)
-        efc <- c(efc,ef)
-        auctop <- c(auctop,at)
-        
-    }
-    
-    scores = c(list(aucc = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
-    return (scores)
-}
+#' @export
 
-bi.weightedProjection <- function(g,vertex=FALSE,mode='shared-neighbours',weight=FALSE){
+
+get.biWeightedProjection <- function(g,vertex=FALSE,mode='shared-neighbours',weight=FALSE){
     if (class(g) != "igraph"){
         stop("The function applies to 'igraph' object.\n")
     }

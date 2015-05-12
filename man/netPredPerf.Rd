@@ -71,7 +71,6 @@ result = getTopresults(A,P,top=10,druglist=NULL)
 ## Getting result from a drug list.
 drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
 result = getTopresults(A,P,top=10,druglist=drugs)
-r <- get.candidate.graph(file=A,affinity=P,top=10,format= "bipart")
 }
 }
 

@@ -237,11 +237,11 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' @examples
 #' \donttest{
 #' A <- enzyme_ADJ 
-#' S = enzyme_Csim 
-#' S1 = enzyme_Gsim
+#' S1 = enzyme_Csim 
+#' S2 = enzyme_Gsim
 #' g1 = graph.incidence(A)
 #' ## other format available \code{format = c("igraph","matrix","pairs")}
-#' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S, S2=S1,format = "matrix")
+#' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S1, S2=S2,format = "matrix")
 #' } 
 #' @export
 
@@ -477,7 +477,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
 #' @param parallel: Using parallization either True or False
 #' @param multicores: If parallisation is set TRUE number of cores to perform parallel computaion.
 #' @param Verbose: For verbose output.
-#' @name Significant network
+#' @name sig.net
 #' @examples
 #' \donttest{
 #' data(Enzyme)
@@ -875,7 +875,6 @@ netPredPerf <- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcom
 #' ## Getting result from a drug list.
 #' drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
 #' result = getTopresults(A,P,top=10,druglist=drugs)
-#' r <- get.candidate.graph(file=A,affinity=P,top=10,format= "bipart")
 #' }
 #' @export
 
