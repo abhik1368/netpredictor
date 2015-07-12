@@ -103,3 +103,8 @@ saveAsGEXF = function(g, filepath="output.gexf")
     
     print(output, filepath, replace=T)
 }
+
+
+
+
+

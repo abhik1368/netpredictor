@@ -1,8 +1,8 @@
 ---
-title: "Using Netpredictor"
+title: "Netpredictor"
 author: "Abhik Seal"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
 fig_caption: yes
 vignette: >
   %\VignetteIndexEntry{Vignette Title}

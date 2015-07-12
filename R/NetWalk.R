@@ -947,3 +947,5 @@ getTopresults <- function(A,P,top=10,druglist=NULL){
     invisible(fr)
 }
 
+
+

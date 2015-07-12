@@ -632,7 +632,47 @@ get.biWeightedProjection <- function(g,vertex=FALSE,mode='shared-neighbours',wei
 }
 
 
-getDrugbanksdf <- function (id, parallel = 2) {
+
+getDrug <- function(id,from = c("Pubchem","Drugbank","Chembl"),type=c("Sdf","Smi"),parallel=5){
+    
+    if (is.null(from)) stop('Must specify a data source')
+    if (is.null(type)) stop('Must specify a data type')
+    
+    FromDict = c('Pubchem' = 'PubChem', 'Chembl' = 'ChEMBL', 
+                 'Kegg' = 'KEGG', 'Drugbank' = 'DrugBank')
+    
+    TypeDict = c('Sdf' = 'Sdf', 'Smi' = 'Smi')
+    
+    FromDict = c('Pubchem' = 'Pubchem', 'Chembl' = 'Chembl', 
+                 'Kegg' = 'Kegg', 'Drugbank' = 'Drugbank')
+        
+    if (from == 'Kegg' & type == 'Smi') stop('Kegg only supports type = "mol" format')
+    
+    type="Smi"
+    from= "Drugbank"
+    
+    NamePart1 = FromDict[from]
+    NamePart2 = TypeDict[type]
+    
+    FunctionName = paste('get', NamePart1, NamePart2, sep = '')
+    
+    Drug = eval(parse(text = paste(FunctionName, '(', 
+                                   gsub('\\"', '\'', capture.output(dput(id))), 
+                                   ', ', parallel, ')', sep = '')))
+    return(Drug)
+    
+}
+
+getKeggSdf <- function(id,parallel=5){
+    
+    MolURL = paste0('http://rest.kegg.jp/get/', id, '/mol')
+    
+        MolTxt = getURLAsynchronous(url = MolURL, perform = parallel)
+    
+    return(MolTxt)
+}
+
+getDrugbankSdf <- function (id, parallel = 2) {
     
     if (is.null(id)){
         stop("id parameter is null")
@@ -644,7 +684,7 @@ getDrugbanksdf <- function (id, parallel = 2) {
     
 }
 
-getDrugBankSmi <- function (id, parallel = 2) {
+getDrugbankSmi <- function (id, parallel = 2) {
     
     if (is.null(id)){
         stop("id parameter is null")
@@ -686,7 +726,7 @@ getPubchemSdf <- function(id, parallel = 5){
 }
 
 
-getChEMBLSmi <- function(id, parallel = 5){
+getChemblSmi <- function(id, parallel = 5){
     if (is.null(id)){
         stop("id parameter is null")
     }
@@ -700,7 +740,7 @@ getChEMBLSmi <- function(id, parallel = 5){
 
 
 
-getChEMBLSdf = function (id, parallel = 5) {
+getChemblSdf = function (id, parallel = 5) {
     
     URL = paste0('https://www.ebi.ac.uk/chembldb/compound/inspect/', id)
     MolPageTxt = getURLAsynchronous(url = URL, perform = parallel)
@@ -724,12 +764,113 @@ getChEMBLSdf = function (id, parallel = 5) {
     return(sdf)
     
 }
-   
-### More function related to proteins needs to be added
-getSeqUniProt = function (id, parallel = 5) {
+ 
+
+
+getUniprotfasta = function (id, parallel = 5) {
 
     fastaURL = paste0('http://www.uniprot.org/uniprot/', id, '.fasta')    
     fastaTxt = getURLAsynchronous(url = fastaURL, perform = parallel)    
     return(fastaTxt)
     
 }
+
+getUniprotseq = function (id, parallel = 5) {
+    
+    # example id:  P00750
+    # example url: http://www.uniprot.org/uniprot/P00750.fasta
+    
+    fastaTxt = getFASTAFromUniProt(id, parallel)
+    
+    tmpfile = tempfile(pattern = paste0(id, '-'), fileext = 'fasta')
+    for (i in 1:length(id)) write(fastaTxt[[i]], tmpfile[i])
+    
+    AASeq = lapply(tmpfile, readFASTA)
+    
+    unlink(tmpfile)
+    
+    return(AASeq)
+    
+}
+
+getKeggfasta <- function(id,parallel = 5){
+    
+    
+    fastaURL = paste0('http://rest.kegg.jp/get/', id, '/aaseq')
+    
+    fastaTxt = getURLAsynchronous(url = fastaURL, perform = parallel)
+    
+    return(fastaTxt)    
+}
+
+
+getKeggseq <- function (id, parallel = 5) {
+    
+    # example id : hsa:10161
+    # example url: http://rest.kegg.jp/get/hsa:10161/aaseq
+    
+    fastaTxt = getFASTAFromKEGG(id, parallel)
+    
+    tmpfile = tempfile(pattern = paste0(id, '-'), fileext = 'fasta')
+    for (i in 1:length(id)) write(fastaTxt[[i]], tmpfile[i])
+    
+    AASeq = lapply(tmpfile, readFASTA)
+    
+    unlink(tmpfile)
+    
+    return(AASeq)
+    
+}
+
+
+getPdbseq = function (id, parallel = 5) {
+    
+    # example id : 4HHB
+    # example url: http://www.rcsb.org/pdb/files/fasta.txt?structureIdList=4HHB
+    
+    fastaURL = paste0('http://www.rcsb.org/pdb/files/fasta.txt?structureIdList=', id)
+    
+    fastaTxt = getURLAsynchronous(url = fastaURL, perform = parallel)
+    
+    tmpfile = tempfile(pattern = paste0(id, '-'), fileext = 'fasta')
+    for (i in 1:length(id)) write(fastaTxt[[i]], tmpfile[i])
+    
+    AASeq = lapply(tmpfile, readFASTA)
+    
+    unlink(tmpfile)
+    
+    return(AASeq)
+    
+}
+
+getProtein = function (id,
+                    from = c('uniprot', 'kegg', 'pdb'),
+                    type = c('fasta', 'aaseq'), 
+                    parallel = 5) {
+    
+    if (is.null(from)) stop('Must specify a data source')
+    if (is.null(type)) stop('Must specify a data type')
+    
+    # Exclude 3 special case from total 9 possible combinations
+    
+   if (from == 'pdb' & type == 'fasta') stop('RCSB PDB only supports type = "aaseq"')
+    
+    FromDict = c('uniprot' = 'Uniprot', 'kegg' = 'Kegg', 'pdb' = 'Pdb')  
+    TypeDict = c('fasta' = 'fasta','aaseq' = 'seq')
+    
+    from = 'uniprot'
+    type = 'fasta' 
+    NamePart1 = FromDict[from]
+    NamePart2 = TypeDict[type]
+        
+    FunctionName = paste('get', NamePart1, NamePart2, sep = '')
+    
+    Prot = eval(parse(text = paste(FunctionName, '(', 
+                                   gsub('\\"', '\'', capture.output(dput(id))), 
+                                   ', ', parallel, ')', sep = '')))
+    
+    return(Prot)
+    
+}
+
+
