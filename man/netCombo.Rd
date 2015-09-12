@@ -5,7 +5,7 @@
 \title{NetCombo}
 \usage{
 netCombo(g1, s1, s2, nbi.alpha = 0.4, nbi.lamda = 0.5, norm = "laplace",
-  par = TRUE)
+  restart = 0.8, par = TRUE)
 }
 \arguments{
 \item{g1:}{igraph object}

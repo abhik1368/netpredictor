@@ -241,10 +241,10 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' S2 = enzyme_Gsim
 #' g1 = graph.incidence(A)
 #' ## other format available \code{format = c("igraph","matrix","pairs")}
-#' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S1, S2=S2,format = "matrix")
+#' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
 #' } 
 #' @export
-
+## Edit the code to include HeatS code to only predict if we have adjacency matrix
 nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","matrix","pairs")) {
     
     startT <- Sys.time()
@@ -276,40 +276,65 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
     if (nrow(s1) != n || ncol(s1) != n) {
         stop("The matrix s1 should be an n by n matrix with same number of rows as A")
     }
-    
-    Ky <- diag(1/colSums(adjM))
-    Ky[is.infinite(Ky) | is.na(Ky)] <- 0
-    
-    kx <- rowSums(adjM)
-    kx[is.infinite(kx) | is.na(kx)] <- 0
-    Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lamda) * 
-                 matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lamda))
-    Nx[is.infinite(Nx) | is.na(Nx)] <- 0 
-    
-    cl <- makeCluster(detectCores())
-    W <- suppressWarnings(t(snow::parMM(cl,adjM,Ky)))
-    W <- suppressWarnings(snow::parMM(cl, adjM, W))  
-    #W <- t(adjM %*% Ky)
-    W <- Nx * W
-    rownames(W) <- rownames(adjM)
-    colnames(W) <- rownames(adjM)
-    X5 <- suppressWarnings(snow::parMM(cl, adjM, s2))
-    X6 <- suppressWarnings(snow::parMM(cl, X5, t(adjM)))
-    X7 <- suppressWarnings(snow::parMM(cl, adjM, matrix(1, nrow=m, ncol=m)))
-    X8 <- suppressWarnings(snow::parMM(cl, X7, t(adjM)))
-    S3 <- X6 / X8
-
-    W  <- W * ((alpha * s1) + ((1-alpha) * S3))
-    
-    W[is.nan(W)] <- 0
-    rM <-  suppressWarnings(snow::parMM(cl,W,adjM))
-    
-    endT <- Sys.time()
-    stopCluster(cl)
-    runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
-    message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
-    message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
-    invisible (rM)
+    if (!exists(s1) && !exists(s2)){
+        
+        Ky <- diag(1/colSums(adjM))
+        Ky[is.infinite(Ky) | is.na(Ky)] <- 0
+        
+        kx <- rowSums(adjM)
+        kx[is.infinite(kx) | is.na(kx)] <- 0
+        Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lamda) * 
+                     matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lamda))
+        Nx[is.infinite(Nx) | is.na(Nx)] <- 0 
+        cl <- makeCluster(detectCores())
+        W <- suppressWarnings(t(snow::parMM(cl,adjM,Ky)))
+        W <- suppressWarnings(snow::parMM(cl, adjM, W))  
+        #W <- t(adjM %*% Ky)
+        W <- Nx * W
+        rownames(W) <- rownames(adjM)
+        colnames(W) <- rownames(adjM)
+        rM <-  suppressWarnings(snow::parMM(cl,W,adjM))
+        endT <- Sys.time()
+        stopCluster(cl)
+        runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
+        message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
+        message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
+        invisible (rM)        
+        
+    } else {
+        Ky <- diag(1/colSums(adjM))
+        Ky[is.infinite(Ky) | is.na(Ky)] <- 0
+        
+        kx <- rowSums(adjM)
+        kx[is.infinite(kx) | is.na(kx)] <- 0
+        Nx <- 1/(matrix(kx, nrow=n, ncol=n, byrow=TRUE)^(lamda) * 
+                     matrix(kx, nrow=n, ncol=n, byrow=FALSE)^(1-lamda))
+        Nx[is.infinite(Nx) | is.na(Nx)] <- 0 
+        cl <- makeCluster(detectCores())
+        W <- suppressWarnings(t(snow::parMM(cl,adjM,Ky)))
+        W <- suppressWarnings(snow::parMM(cl, adjM, W))  
+        #W <- t(adjM %*% Ky)
+        W <- Nx * W
+        rownames(W) <- rownames(adjM)
+        colnames(W) <- rownames(adjM)
+        X5 <- suppressWarnings(snow::parMM(cl, adjM, s2))
+        X6 <- suppressWarnings(snow::parMM(cl, X5, t(adjM)))
+        X7 <- suppressWarnings(snow::parMM(cl, adjM, matrix(1, nrow=m, ncol=m)))
+        X8 <- suppressWarnings(snow::parMM(cl, X7, t(adjM)))
+        S3 <- X6 / X8
+        
+        W  <- W * ((alpha * s1) + ((1-alpha) * S3))
+        
+        W[is.nan(W)] <- 0
+        rM <-  suppressWarnings(snow::parMM(cl,W,adjM))
+        
+        endT <- Sys.time()
+        stopCluster(cl)
+        runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
+        message(sprintf("Done computation of the input graph (%s) ...", as.character(endT)), appendLF=T)
+        message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
+        invisible (rM)
+    }
 }
 
 
@@ -677,7 +702,7 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 #' @export
 
 
-netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",par=TRUE) {
+netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart=0.8,par=TRUE) {
     
     startT <- Sys.time()
     now <- Sys.time()
@@ -695,7 +720,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",par=TRU
     A <- as.matrix(get.incidence(g1))
     message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T) 
     message(sprintf("Running computation for RWR..\n"))
-    Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",parallel=par,verbose=T)
+    Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",parallel=par,verbose=T,restart = restart)
     
 
     message(sprintf("Running computation for network based inference..\n"))
