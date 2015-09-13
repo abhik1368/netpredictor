@@ -21,16 +21,16 @@
 #' @examples
 #' \donttest{
 #' # generate a random graph according to the ER model
-#' g1 <- erdos.renyi.game(100, 1/100)
+#' g1 <- upgrade_graph(erdos.renyi.game(100, 1/100))
+#' V(g1)$name <- seq(1,100,1)
 #' ## Computing RWR
-#' pM <- uNetwalk(g=g1,normalise="laplacian", restart=0.75, parallel=FALSE)
-#' ##
+#' pM <- uNetwalk(g1,normalise="laplacian", restart=0.75, parallel=FALSE)
+#' ## Settin the seed nodes. 
 #' d1 <- c(1,0,1,0,1)
 #' d2 <- c(0,0,1,0,1)
 #' dataSeed <- data.frame(d1,d2)
 #' rownames(dataSeed) <- 1:5
-#' pM <- uNetwalk(g=subg, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
-#' pM
+#' pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
 #' }
 
 uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
@@ -57,12 +57,12 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
     normalise <- match.arg(normalise)
 
     if ("weight" %in% list.edge.attributes(ig)){
-        adjM <- get.adjacency(g, type="both", attr="weight", edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
+        adjM <- get.adjacency(ig, type="both", attr="weight", edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
         if(verbose){
             message(sprintf("\tNotes: using weighted graph!"), appendLF=T)
         }
     }else{
-        adjM <- get.adjacency(g, type="both", attr=NULL, edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
+        adjM <- get.adjacency(ig, type="both", attr=NULL, edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
         if(verbose){
             message(sprintf("\tNotes: using unweighted graph!"), appendLF=T)
         }
@@ -127,8 +127,8 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
         if (class(ig) == "igraph"){
             ind <- match(rownames(data), V(ig)$name)
             nodes_mapped <- V(ig)$name[ind[!is.na(ind)]]
-            if(length(nodes_mapped)!=vcount(ig)){
-                warning("The row names of input dataSeed do not contain all those in the input graph.\n")
+            if(length(nodes_mapped)==0){
+               stop("The row names of input dataSeed do not contain all those in the input graph.\n")
             }
             P0matrix <- matrix(0,nrow=nrow(nadjM),ncol=ncol(data))
             P0matrix[ind[!is.na(ind)],] <- as.matrix(data[!is.na(ind),])
@@ -189,7 +189,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
                         delta <- sum(abs(PX-PT))
                         
                         PT <- PX
-                        step <- step+1
+                        #step <- step+1
                     }
                     #PTmatrix[,j] <- as.matrix(PT, ncol=1)
                     PT[PT<1e-6] <- 0
@@ -218,7 +218,8 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' Network based inference on Bipartite networks
 #' @title Network Based Inference
 #' @description Given a bipartite graph , a two phase resource transfer Information from  X(x,y,z) set of nodes gets distributed to Y set of nodes and then again goes back to resource X. 
-#' This process allows us to define a technique for the calculation of the weight matrix W.
+#' This process allows us to define a technique for the calculation of the weight matrix W. if the similarity matrices are not provided it uses 
+#' bipartite graph to compute netowrk based inference .   
 #' @name nbiNet
 #' @param A: Adjacency Matrix
 #' @param lamda: lamda parameter
@@ -236,6 +237,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' }
 #' @examples
 #' \donttest{
+#' data(Enzyme)
 #' A <- enzyme_ADJ 
 #' S1 = enzyme_Csim 
 #' S2 = enzyme_Gsim

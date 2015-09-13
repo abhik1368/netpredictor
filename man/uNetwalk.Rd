@@ -35,16 +35,16 @@ Random walk on unipartite networks
 \examples{
 \donttest{
 # generate a random graph according to the ER model
-g1 <- erdos.renyi.game(100, 1/100)
+g1 <- upgrade_graph(erdos.renyi.game(100, 1/100))
+V(g1)$name <- seq(1,100,1)
 ## Computing RWR
-pM <- uNetwalk(g=g1,normalise="laplacian", restart=0.75, parallel=FALSE)
-##
+pM <- uNetwalk(g1,normalise="laplacian", restart=0.75, parallel=FALSE)
+## Settin the seed nodes.
 d1 <- c(1,0,1,0,1)
 d2 <- c(0,0,1,0,1)
 dataSeed <- data.frame(d1,d2)
 rownames(dataSeed) <- 1:5
-pM <- uNetwalk(g=subg, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
-pM
+pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
 }
 }
 \references{

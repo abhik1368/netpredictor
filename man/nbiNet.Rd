@@ -22,19 +22,21 @@ nbiNet(A, alpha = 0.5, lamda = 0.5, s1 = NA, s2 = NA,
 }
 \description{
 Given a bipartite graph , a two phase resource transfer Information from  X(x,y,z) set of nodes gets distributed to Y set of nodes and then again goes back to resource X.
-This process allows us to define a technique for the calculation of the weight matrix W.
+This process allows us to define a technique for the calculation of the weight matrix W. if the similarity matrices are not provided it uses
+bipartite graph to compute netowrk based inference .
 }
 \details{
 Network based inference on Bipartite networks
 }
 \examples{
 \donttest{
+data(Enzyme)
 A <- enzyme_ADJ
 S1 = enzyme_Csim
 S2 = enzyme_Gsim
 g1 = graph.incidence(A)
 ## other format available \\code{format = c("igraph","matrix","pairs")}
-M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  S1=S1, S2=S2,format = "matrix")
+M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
 }
 }
 \references{

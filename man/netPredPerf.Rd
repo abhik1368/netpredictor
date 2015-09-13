@@ -5,7 +5,9 @@
 \alias{netPredPerf}
 \title{Link Prediction Performance}
 \usage{
-netPredPerf(A, S1, S2, relinks = 100, numT = 2, Calgo = c("rwr", "nbi","netcombo"))
+netPredPerf(A, S1, S2, relinks = 100, numT = 2, Calgo = c("rwr", "nbi",
+  "netcombo"))
+
 getTopresults(A, P, top = 10, druglist = NULL)
 }
 \arguments{
