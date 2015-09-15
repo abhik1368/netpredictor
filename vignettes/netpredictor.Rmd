@@ -1,0 +1,114 @@
+---
+title: "Netpredictor"
+author: "Abhik Seal"
+date: "`r Sys.Date()`"
+output: rmarkdown::pdf_document
+fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+## Table of Contents
+
+[1. Introduction](#introduction)
+
+[2. Installation](#installation)
+
+[3. Mathematical Approach](#mathematical-approach)
+
+[4. Analyzing Results](#analzying-results)
+
+[5. Citations](#citations)
+_______
+
+## 1. Introduction
+Social and biological systems can be represented by graphs where nodes represent individuals ,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to to solve the problem bipartite link prediction using Random walk with restart and network based inference methods. We plan to integrate varierty of other algorithms in near future. All of the code in developed in R which also provides parallel computationality. 
+
+_______
+
+## 2. Installation
+
+A stable tested version of SAGA is available from the CRAN repository or the most recent version may be installed from github using the devtools package: 
+
+Installing from github
+
+     install.packages("devtools")
+     install_github("abhik1368/netpredicter")     
+
+_______
+
+## 3. Mathematical Approach
+
+
+
+_______
+
+## 4. Analzying Results
+
+
+
+
+
+## Vignette Info
+
+Note the various macros within the `vignette` setion of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+
+## Styles
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+_______
+
+## 6. Citations
+
+[1] Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
+
+[2] Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+
+[3] Cheng F, et al. Prediction of drug-target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
+
+[4] Zhou T, et al. Solving the apparent diversity-accuracy dilemma of recommender systems. Proc. Natl Acad. Sci. USA 2010;107:4511-4515.
+
+[5] Zhou T, et al. Bipartite network projection and personal recommendation. Phys. Rev. E Stat. Nonlin. Soft Matter Phys. 2007;76:046115.
+
+[6] http://data2quest.blogspot.com/2015/02/link-prediction-using-network-based.html
+
+[7] Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.
+
+[8] Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978
+
+[9] Seal  A, Ahn  Y, Wild  DJ . Optimizing drug&#8211;target interaction prediction based on random walk on heterogeneous networks Journal of Cheminformatics 2015, 7:40.
+
+[10] Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.
+
+[11] Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.

@@ -35,7 +35,10 @@
 
 uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
     {
-
+    ig = g1
+    dataSeed <- dataSeed
+    restart <- 0.8
+    normalise = "laplacian"
     startT <- Sys.time()
     stop_delta <- 1e-7   
     if (class(ig) != "igraph"){
@@ -91,9 +94,9 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
     colNorm<- function(m){
         #res <- t(t(m)/colSums(m))
         
-        col_sum <- apply(PTmatrix, 2, sum)
-        col_sum_matrix <- matrix(rep(col_sum, nrow(PTmatrix)), ncol=ncol(PTmatrix), nrow=nrow(PTmatrix), byrow =T)
-        res <- as.matrix(PTmatrix)/col_sum_matrix
+        col_sum <- apply(m, 2, sum)
+        col_sum_matrix <- matrix(rep(col_sum, nrow(m)), ncol=ncol(m), nrow=nrow(m), byrow =T)
+        res <- as.matrix(m)/col_sum_matrix
         res[is.na(res)] <- 0
         return(res)
     }
@@ -238,19 +241,22 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' @examples
 #' \donttest{
 #' data(Enzyme)
-#' A <- enzyme_ADJ 
-#' S1 = enzyme_Csim 
-#' S2 = enzyme_Gsim
-#' g1 = graph.incidence(A)
+#' A <- t(enzyme_ADJ) 
+#' S1 = as.matrix(enzyme_Csim) 
+#' S2 = as.matrix(enzyme_Gsim)
+#' g1 = upgrade_graph(graph.incidence(A))
 #' ## other format available \code{format = c("igraph","matrix","pairs")}
 #' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
 #' } 
 #' @export
+
 ## Edit the code to include HeatS code to only predict if we have adjacency matrix
 nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","matrix","pairs")) {
     
     startT <- Sys.time()
-    
+    s1=as.matrix(S1)
+    s2=as.matrix(S2)
+    lamda = 0.5
     format <- match.arg(format)
     now <- Sys.time()
     message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T)
@@ -278,7 +284,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
     if (nrow(s1) != n || ncol(s1) != n) {
         stop("The matrix s1 should be an n by n matrix with same number of rows as A")
     }
-    if (!exists(s1) && !exists(s2)){
+    if (!exists('s1') && !exists('s2')){
         
         Ky <- diag(1/colSums(adjM))
         Ky[is.infinite(Ky) | is.na(Ky)] <- 0
@@ -354,11 +360,11 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' @param multicore: using multicores
 #' @references 
 #' \itemize {
-#' \item Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.
-#' \item Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.
+#' \item {Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
+#' \item {Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.}
 #' }
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data(Enzyme)
 #' A <- enzyme_ADJ 
 #' S2 = enzyme_Csim 
@@ -509,10 +515,10 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
 #' \donttest{
 #' data(Enzyme)
 #' A <- enzyme_ADJ 
-#' S = enzyme_Csim 
 #' S1 = enzyme_Gsim
+#' S2 = enzyme_Csim
 #' g1 = graph.incidence(A)
-#' Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+#' Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
 #' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
 #' } 
 #' @export
@@ -748,19 +754,25 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' @name netPredPerf
 #' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 #' \itemize{
-#'   \item Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.
-#'   \item Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.
+#'   \item {Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.}
+#'   \item {Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.}
 #' }
 #' @examples
-#' \donttest {
+#' \dontrun{
 #' data(Enzyme)
 #' A = enzyme_ADJ 
 #' S1 = enzyme_Gsim 
 #' S2= enzyme_Csim
 #' m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+#'
+#' ## Another Example
+#' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
+#' result = getTopresults(A,P,top=10,druglist=NULL)
+#' ## Getting result from a drug list.
+#' drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
+#' result = getTopresults(A,P,top=10,druglist=drugs)
 #' }
 #' @export
-
 
 netPredPerf <- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")){
     

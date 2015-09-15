@@ -13,7 +13,7 @@ This uses an object of getCommuntiy class and extracts parameters to plot curren
 plotting Communities
 }
 \examples{
-\donttest{
+\dontrun{
 ## Run the Bipartite Random walk with Restart
 Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
 ## Get the significant vertices which are in columns

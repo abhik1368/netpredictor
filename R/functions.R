@@ -168,6 +168,8 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }
+    g = Z$cgraph
+    num.nodes=3
     
     ## decompose the graph 
     gps <- decompose.graph(g,min.vertices=num.nodes)
@@ -181,9 +183,11 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
     if (length(indx) < 1){
         stop("No communities found less than num.nodes")
     }
-    
+    #g = Z$cgraph
     community.significance.test <- function(graph, vs, ...) {
         if (is.directed(graph)) stop("This method requires an undirected graph")
+        graph = g
+        vs <- membership(comm)
         subgraph <- induced.subgraph(graph, vs)
         in.degrees <- degree(subgraph)
         out.degrees <- degree(graph, vs) - in.degrees
@@ -192,9 +196,8 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
     
     j <- 1
     for (i in indx){
-         
-        comm <- calgo(gps[[i]],weights=E(gps[[i]])$weight)
-        mem <- data.frame(membership(comm))
+        comm <- cluster_walktrap(gps[[i]],weights=E(gps[[i]])$weight)
+        mem <- as.data.frame(as.matrix(membership(comm)))
         colnames(mem)[1] <- "Members"
         comm.sig <- community.significance.test(g,membership(comm))
         result[[j]] = list(community = comm,
@@ -213,7 +216,7 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
 #' @description This uses an object of getCommuntiy class and extracts parameters to plot current communities. 
 #' @name plot_Community
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' ## Run the Bipartite Random walk with Restart
 #' Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
 #' ## Get the significant vertices which are in columns

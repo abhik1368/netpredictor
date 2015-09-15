@@ -34,10 +34,10 @@ Significance of Bipartite networks
 \donttest{
 data(Enzyme)
 A <- enzyme_ADJ
-S = enzyme_Csim
 S1 = enzyme_Gsim
+S2 = enzyme_Csim
 g1 = graph.incidence(A)
-Q = biNetwalk(g1,S,S1,normalise="laplace",parallel=FALSE,verbose=T)
+Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
 Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
 }
 }
