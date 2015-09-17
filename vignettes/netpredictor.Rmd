@@ -1,14 +1,16 @@
 ---
-title: "Netpredictor"
+title: "NetPredictor"
 author: "Abhik Seal"
 date: "`r Sys.Date()`"
-output: rmarkdown::pdf_document
-fig_caption: yes
+output:
+  rmarkdown::pdf_document:
+      fig_caption: yes
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+  %\VignetteIndexEntry{netpredictor tutorial}
+  %\VignetteEngine{knitr::knitr}
+  %\usepackage[utf8]{inputenc}
 ---
+
 ## Table of Contents
 
 [1. Introduction](#introduction)
@@ -20,11 +22,12 @@ vignette: >
 [4. Analyzing Results](#analzying-results)
 
 [5. Citations](#citations)
+
 _______
 
 ## 1. Introduction
 Social and biological systems can be represented by graphs where nodes represent individuals ,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to to solve the problem bipartite link prediction using Random walk with restart and network based inference methods. We plan to integrate varierty of other algorithms in near future. All of the code in developed in R which also provides parallel computationality.
-This summation expression Let's see if it works:  appears inline.
+
 
 
 _______
@@ -48,25 +51,12 @@ _______
 
 ## 4. Analzying Results
 
-Note the various macros within the `vignette` setion of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
 _______
 
 ## 6. Citations
 [1] Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
 
-[2] Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+[2] Can, T., Camoglu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
 
 [3] Cheng F, et al. Prediction of drug-target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
 
