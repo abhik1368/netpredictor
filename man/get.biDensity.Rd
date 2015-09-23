@@ -4,12 +4,14 @@
 \alias{get.biDensity}
 \title{Graph Density for Bipartite graphs.}
 \usage{
-get.biDensity(g)
+get.biDensity(A)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{A:}{Biparite matrix object}
 }
 \value{
+It returns a list of score of degree centrality of nodes at rows and nodes at columns.
+
 Returns a list scores of the degree Density the nodes in the rows are scored first followed by column vertices.
 }
 \description{

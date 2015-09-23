@@ -40,7 +40,7 @@ Following methods are available:
 }
 \examples{
 \donttest{
-# net <- netSim(graph=proj_weighted,method="pa")
+# net <- netSim(graph=proj_weighted,method="paSim")
 }
 }
 \references{

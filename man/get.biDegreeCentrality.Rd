@@ -4,12 +4,14 @@
 \alias{get.biDegreeCentrality}
 \title{Degree centrality for Bipartite Graphs.}
 \usage{
-get.biDegreeCentrality(g, loops = FALSE, SM = TRUE)
+get.biDegreeCentrality(A, loops = FALSE, SM = TRUE)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{A:}{Biparite matrix object}
 }
 \value{
+It returns a list of score of degree centrality of nodes at rows and nodes at columns.
+
 Returns a list scores of the degree centrality the nodes in the rows are scored first followed by column vertices.
 By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.
 }

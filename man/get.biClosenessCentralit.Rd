@@ -5,10 +5,10 @@
 \alias{get.biClosenessCentrality}
 \title{Closeness centrality for bipartite graphs.}
 \usage{
-get.biClosenessCentrality(g, SM = TRUE)
+get.biClosenessCentrality(A, SM = TRUE)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{A:}{Biparite matrix object}
 
 \item{SM:}{TRUE or FALSE}
 }

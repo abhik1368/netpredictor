@@ -21,6 +21,8 @@
 #' @examples
 #' \donttest{
 #' # generate a random graph according to the ER model
+#' library(igraph)
+#' library(netpredictor)
 #' g1 <- upgrade_graph(erdos.renyi.game(100, 1/100))
 #' V(g1)$name <- seq(1,100,1)
 #' ## Computing RWR
@@ -35,10 +37,7 @@
 
 uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
     {
-    ig = g1
-    dataSeed <- dataSeed
-    restart <- 0.8
-    normalise = "laplacian"
+
     startT <- Sys.time()
     stop_delta <- 1e-7   
     if (class(ig) != "igraph"){
@@ -374,7 +373,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' }
 #' @export
 
-biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
+biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
     
     startT <- Sys.time()
 
@@ -418,37 +417,21 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
     # get the transition matrix
     W = tMat(adjM,s1,s2,normalise=normalise)
     message(sprintf("got the transition matrix for RWR"))
-    if(is.null(dataSeed) && is.null(file)){
+    if(is.null(dataSeed)){
         
         M<-Matrix(adjM)
         M2<-0.99*M
         d<-Matrix(0.01*diag(nrow(s2)))
         P0matrix<-rBind(M2,d)
         
-    }else if (is.null(file)){
-        
-        ## check input seeds
-        if(is.vector(dataSeed)){           
-            data <- as.matrix(dataSeed, ncol=1)
-            rownames(data)<-dataSeed
-        }
-        
-        cnames <- "V1"    
-        ind <- match(rownames(data), rownames(W))
-        nodes_mapped <- rownames(W)[ind[!is.na(ind)]]
-        if(length(nodes_mapped)!=length(rownames(data))){
-            warning("The row names of input dataSeed do not contain all those in the input graph.\n")
-        }  
-        P0matrix <- matrix(0,nrow=nrow(W),ncol=1)
-        P0matrix[ind[!is.na(ind)],] <- 1 
-        P0matrix <- colNorm(P0matrix)
     }else{
         
         # part of the section for input file name
-        drug.names <- as.character(unique(file$V2))
+        drug.names <- as.character(unique(dataSeed$V2))
         P0matrix <- matrix(0,nrow=nrow(W),ncol=length(drug.names))
+        
         for (i in 1:length(drug.names)){
-            sub.fr <- file[file$V2==drug.names[i],]
+            sub.fr <- dataSeed[dataSeed$V2==drug.names[i],]
             proteins <- as.character(sub.fr$V1)
             ind1 <- match(proteins, rownames(W))
             ind2 <- match(drug.names[i],rownames(W))
@@ -483,7 +466,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL, fil
         
         rmat <- colNorm(as.matrix(rmat))
         rownames(rmat)<- rownames(adjM)
-        if(!is.null(file)){
+        if(!is.null(dataSeed)){
             colnames(rmat)<- drug.names
             invisible(rmat)
         } else {
@@ -985,6 +968,3 @@ getTopresults <- function(A,P,top=10,druglist=NULL){
     
     invisible(fr)
 }
-
-
-

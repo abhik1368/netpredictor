@@ -4,10 +4,10 @@
 \alias{get.biBetweenessCentrality}
 \title{Betweeness centrality for bipartite graphs.}
 \usage{
-get.biBetweenessCentrality(g, SM = TRUE)
+get.biBetweenessCentrality(A, SM = TRUE)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{A:}{Biparite matrix object}
 
 \item{SM:}{TRUE or FALSE}
 }

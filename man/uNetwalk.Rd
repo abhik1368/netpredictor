@@ -35,6 +35,8 @@ Random walk on unipartite networks
 \examples{
 \donttest{
 # generate a random graph according to the ER model
+library(igraph)
+library(netpredictor)
 g1 <- upgrade_graph(erdos.renyi.game(100, 1/100))
 V(g1)$name <- seq(1,100,1)
 ## Computing RWR
@@ -50,7 +52,7 @@ pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parall
 \references{
 \itemize{
   \item Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
-  \item Can, T., Çamoǧlu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
+  \item Can, T., Camoglu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
 }
 }
 

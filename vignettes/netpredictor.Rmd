@@ -17,7 +17,7 @@ vignette: >
 
 [2. Installation](#installation)
 
-[3. Mathematical Approach](#mathematical-approach)
+[3. Examples](#mathematical-approach)
 
 [4. Analyzing Results](#analzying-results)
 
@@ -26,9 +26,21 @@ vignette: >
 _______
 
 ## 1. Introduction
-Social and biological systems can be represented by graphs where nodes represent individuals ,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to to solve the problem bipartite link prediction using Random walk with restart and network based inference methods. We plan to integrate varierty of other algorithms in near future. All of the code in developed in R which also provides parallel computationality.
+Social and biological systems can be represented by graphs where nodes represent individuals ,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to solve the problem of bipartite link prediction using Random walk with restart(RWR) and network based inference methods(NBI). We plan to integrate varierty of other algorithms in near future. All of the code is developed in R which also provides parallel execution modes. 
 
+Consider an undirected, unweighted network $G = (V, E)$, where V is the set of nodes and E is the set of links. For each pair of nodes  \{$a$,$b$} $\in$ V  we can assign a proximity score by executing the random walk procedure as follows : 
 
+- we start a random walker from a. 
+- At each time step, with the probability $1-c$, the walker walks to one of the neighbors, $b$, according to the transition probability matrix  $W_{ab} = \frac{S_{ab}}{T}$  where $S_{ab}$ is the adjacency matrix of the network and ($S_{ab}$ equals 1 if node a and b are connected, 0 otherwise) $K_{a}$  denotes the degree of a.
+- With the probability c, the walker goes back to a. 
+- After many time steps the probability of finding the random walker at node x converges to the steady-state probability, which is our proximity score $S_{a \rightarrow x}$.
+
+One of the most widely used ways to solve random walk with restart is the matrix iteration method, iterating the equation (1) until convergence, i.e, until the L2 norm of successive estimates of below our threshold T $10 ^ {-7}$.
+\begin{equation}
+\begin{aligned}
+P_{t+1} = ( 1 - c ) W^{T} P_{t} + cP_{0}
+\end{aligned}
+\end{equation}
 
 _______
 
@@ -43,9 +55,142 @@ Installing from github
 
 _______
 
-## 3. Mathematical Approach
+## 3. Examples
+Here at first we look at the properties which can be calculated on unipartite graphs.
+
+```{r, eval=FALSE,results='asis'}
+
+require(igraph)
+require(netpredictor)
+g1 <- upgrade_graph(erdos.renyi.game(100, 1/100))
+V(g1)$name <- seq(1,100,1)
+score_mat <- unetSim(g1,"aa")
+head(which(score_mat!=0, arr.ind = T))
+
+## Common neighbors vertex similarity
+score_mat <- unetSim(g1,"cn")
+head(which(score_mat!=0, arr.ind = T))
+
+## Jaccard Index similarity
+
+score_mat <- unetSim(g1,"jc")
+
+## Dice similarity
+
+score_mat <- unetSim(g1,"dice")
+
+## Katz Index similarity
+
+score_mat <- unetSim(g1,"katz")
+
+## Geodesic distance vertex similarity
+
+score_mat <- unetSim(g1,"dist")
+
+## Cosine vertex similarity/ Salton index
+
+score_mat <- unetSim(g1,"cosine")
+
+## Preferential attachment vertex similarity
+
+score_mat <- unetSim(g1,"pa")
+
+## Local Paths Index
+## This function counts the number of two-paths and three-paths between nodes,
+#  with three-paths weighted by a parameter \eqn{\epsilon}.
+
+score_lpsim <- unetSim(g1,"lp")
+
+## Hub promoted Index
+## This measures assigns higher scores to links adjacent to hubs (high degree nodes). It 
+## counts common neighbors of two vertices and weigths the result.
+
+score_hpsim <- unetSim(g1,"hpi")
+
+## Similarity measure based on resource allocation process (number of common neighbours 
+## weighted by the inverse of their degrees)
+
+score_hpsim <- unetSim(g1,"ra")
+```
+
+Next we look at the properties which can be calculated on Bipartite graphs.
+
+```{r, eval=FALSE,results='asis'}
 
 
+suppressPackageStartupMessages(library(igraph))
+suppressPackageStartupMessages(library(netpredictor))
+## dataset enzyme is provide in netpredictor package
+data(Enzyme)
+
+## Get the Enzyme and compound adjacency matrix
+A <- t(enzyme_ADJ)
+
+## degree Centrality of the Bipartite Graph
+get.biDegreeCentrality(A)
+
+## Compute Graph density of Bipartite Graph
+get.biDensity(A)
+
+## Compute betweeness centrality of Bipartite Graph
+get.biBetweenessCentrality(A)
+
+## Projects Bipartite Networks into monopartite networks default method is shared 
+## neighbours.
+get.biWeightedProjection(A)
+
+```
+
+Next we will use the different methods to predict links. Here we have shown examples based on drug target prediction. With the growing understanding of complex diseases, the focus of drug discovery has shifted away from "one target, one drug" model, to a new "multi-target, multi-drug" model. Predicting potential drug-target interactions from heterogeneous biological data is critical not only for better understanding of the various interactions and biological processes, but also for the development of novel drugs and the improvement of human medicines. To predict polypharmacology people use bayesian methods, SVM and Random Forest models, but in all of those algorithms the methods depends on labelled data to predict unknown links. Network based approaches does not rely on labelled data . Two of the algorihtms implemented in this package Random walk based Restart(RWR) and Network based Inference(NBI) to do it. For performing RWR we used Drug target network which is a bipartite graph in which every links connects drugs to proteins. 
+
+```{r, eval= TRUE,results='asis' ,messages=FALSE}
+suppressPackageStartupMessages(require(igraph))
+suppressPackageStartupMessages(require(netpredictor))
+
+## We use the enzyme data provided in the netpredictor package. The example
+# below shows how to perform random walk with restart
+
+data(Enzyme)
+## load the adjacency matrix 
+A <- enzyme_ADJ 
+
+## load the chemical similarity matrix calculated from other packages or softwares
+S2 = enzyme_Csim 
+
+## load the protein similarity matrix
+
+S1 = enzyme_Gsim
+
+## Convert the adjacency matrix to igraph object because biNetwalk function used igraph object
+g1 = graph.incidence(A)
+
+## Run the RWR in bipartite network.
+pScore <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,
+                restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+
+dim(pScore)
+```
+
+In this example we attempt to use the dataseed file which contains the pairs relations between targets and drugs. This can be useful when one is trying to investigate relations for a specific set of relations . The Drug names and proteins names should be included in the adjacency matrix when one uses the file option to provide dataseed. In the dataseed file the first column contains the proteins names and the second column the drug names.
+
+```{r, eval= TRUE,results='asis' ,messages=TRUE}
+
+suppressPackageStartupMessages(require(igraph))
+suppressPackageStartupMessages(require(netpredictor))
+library(printr)
+data(Enzyme)
+
+A <- t(enzyme_ADJ)
+g1 <- upgrade_graph(graph.incidence(A,mode = 'all')) 
+S1 = enzyme_Csim 
+S2 = enzyme_Gsim
+## Read the dataseed file from the user 
+dataF<- read.csv("seedFile.csv",header=FALSE)
+knitr::kable(dataF)
+Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed =dataF,
+                 restart=0.8,parallel=TRUE, multicores=NULL, verbose=T)
+dim(Mat)
+```
 
 _______
 

@@ -4,11 +4,11 @@
 \alias{get.biWeightedProjection}
 \title{Projecting Bipartite Networks.}
 \usage{
-get.biWeightedProjection(g, vertex = FALSE, mode = "shared-neighbours",
+get.biWeightedProjection(A, vertex = FALSE, mode = "shared-neighbours",
   weight = FALSE)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{A:}{Biparite matrix object}
 
 \item{mode:}{\code{'shared-neighbours'} and \code{'newman'}}
 }

@@ -14,18 +14,18 @@ aaSim <- function(graph){
 ## @param graph: a igraph object
 
 
-actSim <- function(graph){
-    L <- igraph::graph.laplacian(graph)
-    n <- igraph::vcount(graph)
-    m <- igraph::ecount(graph)
-    
-    L_psinv <- solve(L - 1/n) + 1/n
-    score <- 2 * m * (diag(L_psinv) %*% t(rep(1, n)) +
-                          rep(1, n) %*% t(diag(L_psinv)) -
-                          2 * L_psinv)
-    score <- 1 / score
-    return (score)
-}
+# actSim <- function(graph){
+#     L <- igraph::graph.laplacian(graph)
+#     n <- igraph::vcount(graph)
+#     m <- igraph::ecount(graph)
+#     
+#     L_psinv <- solve(L - 1/n) + 1/n
+#     score <- 2 * m * (diag(L_psinv) %*% t(rep(1, n)) +
+#                           rep(1, n) %*% t(diag(L_psinv)) -
+#                           2 * L_psinv)
+#     score <- 1 / score
+#     return (score)
+# }
 
 ## Common neighbors vertex similarity
 ## @description Similarity measure counting number of common neighbors.
@@ -42,6 +42,7 @@ cnSim <- function(graph){
 ## @param graph: a igraph object
 
 jcSim <- function(graph){
+    g1 <- graph
     score <- igraph::similarity.jaccard(graph)
     return (score)
 }
@@ -76,13 +77,13 @@ katzSim <- function(graph,beta = 0.001){
 #  paths counting more heavily. Weigths are exponential.
 ## @param graph: a igraph object
 
-invLSim <- function(graph){
-    L <- igraph::graph.laplacian(graph)
-    n <- vcount(graph)
+#invLSim <- function(graph){
+#    L <- igraph::graph.laplacian(graph)
+#    n <- vcount(graph)
     
-    score <- solve(L - 1/n) + 1/n
-    return (score)
-}
+#    score <- solve(L - 1/n) + 1/n
+#    return (score)
+#}
 
 ## Geodesic distance vertex similarity
 ## @description This function calculates similarity score for vertices based on the shortest paths between them.
@@ -102,7 +103,7 @@ distSim <- function(graph){
 ## @param graph: a igraph object
 
 cosineSim <- function(graph){
-    x <- igraph::get.adjacency(graph)
+    x <- as.matrix(igraph::get.adjacency(graph))
     return (x%*%t(x)/(sqrt(rowSums(x^2) %*% t(rowSums(x^2)))))
 }
 
@@ -204,7 +205,7 @@ raSim <- function(graph){
 ## function for matching methods
 match_method <- function(method){
     method <- match.arg(method, c("act", "aa", "cn", "jc", "dice","invL", "hdi", "hpi", "katz","dist",
-                                  "lhn", "lp", "cosine", "pa","ra"))
+                                  "lhn", "lp", "dist","cosine", "pa","ra"))
     paste0(method,"Sim")
 }
 
@@ -237,7 +238,7 @@ match_method <- function(method){
 #'   }
 #' @examples
 #' \donttest{
-#' # net <- netSim(graph=proj_weighted,method="pa")
+#' # net <- netSim(graph=proj_weighted,method="paSim")
 #' }
 #' 
 #' @export
