@@ -17,7 +17,7 @@ vignette: >
 
 [2. Installation](#installation)
 
-[3. Examples](#mathematical-approach)
+[3. Examples](#Examples)
 
 [4. Analyzing Results](#analzying-results)
 
@@ -171,7 +171,7 @@ pScore <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,
 dim(pScore)
 ```
 
-In this example we attempt to use the dataseed file which contains the pairs relations between targets and drugs. This can be useful when one is trying to investigate relations for a specific set of relations . The Drug names and proteins names should be included in the adjacency matrix when one uses the file option to provide dataseed. In the dataseed file the first column contains the proteins names and the second column the drug names.
+In this example we attempt to use the dataseed file which contains the pairs relations between targets and drugs. This can be useful when one is trying to investigate relations for a specific set of relations . The Drug names and proteins names should be included in the adjacency matrix when one uses the file option to provide dataseed. In the dataseed file the first column contains the proteins names and the second column the drug names. Ouput is a matrix of unique drugs against the number of targets in the adjacency matrix. 
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE}
 
@@ -190,11 +190,78 @@ knitr::kable(dataF)
 Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed =dataF,
                  restart=0.8,parallel=TRUE, multicores=NULL, verbose=T)
 dim(Mat)
+
+
 ```
+
+
+In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix.
+
+```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
+
+suppressPackageStartupMessages(require(igraph))
+suppressPackageStartupMessages(require(netpredictor))
+
+A <- enzyme_ADJ 
+S1 = enzyme_Gsim
+S2 = enzyme_Csim
+g1 = graph.incidence(A)
+Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",dataSeed=NULL,restart=0.8,
+              parallel=TRUE,multicores=NULL, verbose=T)
+
+## Get the top results of RWR prediction. This function returns the associations     
+## of drugs and target names with scores and type interaction whether
+## True / predicted interactions.
+
+knitr::kable(head(getTopresults(A,Q,top=10,druglist=NULL)))
+
+## Get top results of RWR prediction using a drug list
+
+drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
+result <- getTopresults(A,Q,top=10,druglist=drugs)
+head(result)
+
+## Get the significance graph 
+Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,
+            p.adjust.method="BH",parallel=FALSE)
+
+## Get the graph for plotting commnuties
+g <- Z$cgraph
+
+gp <- get.Communities(g)
+
+## Get members from the first community
+print(gp[[1]]$community)
+
+## Total number of communities
+length(gp)
+
+## Plot the communities with 5 columns
+plot_Community(gp,cols=5)
+
+```
+
+One can use netPredPerf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, bedroc, and Enrichment factor.  
+
+```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
+
+data(Enzyme)
+A = enzyme_ADJ 
+S1 = enzyme_Gsim 
+S2= enzyme_Csim
+
+## We remove 50 links and repredict those links. While repredicted them we calculate 
+## performance metrics
+m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+m
+
+```
+
 
 _______
 
 ## 4. Analzying Results
+
 
 _______
 
