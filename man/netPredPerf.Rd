@@ -3,28 +3,11 @@
 \name{netPredPerf}
 \alias{getTopresults}
 \alias{netPredPerf}
-\title{Link Prediction Performance}
+\title{Get Top Results}
 \usage{
-netPredPerf(A, S1, S2, relinks = 100, numT = 2, Calgo = c("rwr", "nbi",
-  "netcombo"))
-
 getTopresults(A, P, top = 10, druglist = NULL)
 }
 \arguments{
-\item{A}{: Drug target association matrix}
-
-\item{S1}{: Sequence similarity matrix object}
-
-\item{S2:}{Accepts a matrix object similarity scores for compounds.}
-
-\item{relinks:}{Number of links to remove randomly from the input matrix.}
-
-\item{numT:}{Frequency of the number of targets.}
-
-\item{Calgo:}{Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo".}
-
-\item{norm:}{normalization of matrices options are "laplace" or "none".}
-
 \item{A}{: Drug target association matrix.}
 
 \item{P:}{Drug target predicted matrix.}
@@ -35,38 +18,14 @@ getTopresults(A, P, top = 10, druglist = NULL)
 }
 \value{
 it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
-\itemize{
-  \item {Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.}
-  \item {Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.}
-}
-
-it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 }
 \description{
-This function samples links and removies links from the adjacency matrix and predicts them and calculates  area under accumulation curve, AUC, bedroc, and Enrichment factor.
-
 The function returns the given top number of predicted results along with true interactions.
 }
 \details{
-get the performance of the link Prediction algorithms.
-
 Get top predicted results.
 }
 \examples{
-\dontrun{
-data(Enzyme)
-A = enzyme_ADJ
-S1 = enzyme_Gsim
-S2= enzyme_Csim
-m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
-
-## Another Example
-P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
-result = getTopresults(A,P,top=10,druglist=NULL)
-## Getting result from a drug list.
-drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
-result = getTopresults(A,P,top=10,druglist=drugs)
-}
 \donttest {
 data(Enzyme)
 A = enzyme_ADJ

@@ -734,7 +734,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' @param numT: Frequency of the number of targets.
 #' @param Calgo: Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo". 
 #' @param norm: normalization of matrices options are "laplace" or "none".   
-#' @name netPredPerf
+#' @name net.perf
 #' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 #' \itemize{
 #'   \item {Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.}
@@ -746,18 +746,11 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' A = enzyme_ADJ 
 #' S1 = enzyme_Gsim 
 #' S2= enzyme_Csim
-#' m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
-#'
-#' ## Another Example
-#' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
-#' result = getTopresults(A,P,top=10,druglist=NULL)
-#' ## Getting result from a drug list.
-#' drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
-#' result = getTopresults(A,P,top=10,druglist=drugs)
+#' m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
 #' }
 #' @export
 
-netPredPerf <- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")){
+net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")){
     
     auctop = numeric()
     aucc = numeric()

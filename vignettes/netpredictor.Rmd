@@ -113,6 +113,7 @@ score_hpsim <- unetSim(g1,"hpi")
 score_hpsim <- unetSim(g1,"ra")
 ```
 
+
 Next we look at the properties which can be calculated on Bipartite graphs.
 
 ```{r, eval=FALSE,results='asis'}
@@ -173,6 +174,7 @@ dim(pScore)
 
 In this example we attempt to use the dataseed file which contains the pairs relations between targets and drugs. This can be useful when one is trying to investigate relations for a specific set of relations . The Drug names and proteins names should be included in the adjacency matrix when one uses the file option to provide dataseed. In the dataseed file the first column contains the proteins names and the second column the drug names. Ouput is a matrix of unique drugs against the number of targets in the adjacency matrix. 
 
+
 ```{r, eval= TRUE,results='asis' ,messages=TRUE}
 
 suppressPackageStartupMessages(require(igraph))
@@ -194,8 +196,7 @@ dim(Mat)
 
 ```
 
-
-In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix.
+In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format to Gephi specific file format. Below shows the example of exporting to GML format.
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
 
@@ -215,11 +216,19 @@ Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",dataSeed=NULL,restart=0.8,
 
 knitr::kable(head(getTopresults(A,Q,top=10,druglist=NULL)))
 
-## Get top results of RWR prediction using a drug list
+## Get top results of RWR prediction using a list of drug names. One should be careful using 
+## a drug list it should contain drug names which are in the adjacency matrix.     
 
 drugs = c("D00014","D00018", "D00029", "D00036","D00045","D00049")
 result <- getTopresults(A,Q,top=10,druglist=drugs)
+
+## Get the results
 head(result)
+
+## Save the top results in GML format for visualization in Gephi.
+g<-graph.data.frame(result[,1:2],directed=FALSE)
+g <- set.edge.attribute(g, "weight", value=result[,3])
+saveGML(g,"netresult.gml","netresult")
 
 ## Get the significance graph 
 Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,
@@ -241,7 +250,7 @@ plot_Community(gp,cols=5)
 
 ```
 
-One can use netPredPerf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, bedroc, and Enrichment factor.  
+One can use net.perf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, bedroc, and Enrichment factor. In the example below we remove 50 links and repredict those links. While repredicting  them we calculate performance metrics like AUC,bedroc and enrichment factor. As the number of links (relinks) increases the performance of prediction drops. 'Calgo' option uses different algorithms like "nbi" ,"rwr" and "netcombo" . 
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
 
@@ -250,9 +259,7 @@ A = enzyme_ADJ
 S1 = enzyme_Gsim 
 S2= enzyme_Csim
 
-## We remove 50 links and repredict those links. While repredicted them we calculate 
-## performance metrics
-m = netPredPerf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
 m
 
 ```
