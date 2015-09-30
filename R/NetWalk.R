@@ -224,8 +224,9 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' bipartite graph to compute netowrk based inference .   
 #' @name nbiNet
 #' @param A: Adjacency Matrix
-#' @param lamda: lamda parameter
-#' @param alpha: alpha parameter
+#' @param lamda: Tuning parameter (value between 0 and 1) which determines how the distribution of 
+#'                resources takes place in thesecond phase
+#' @param alpha: Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.
 #' @param S1: Target Similarity matrix
 #' @param S2: Chemical Similarity Matrix
 #' @param format: type of file as Adjacnency file
@@ -246,6 +247,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' g1 = upgrade_graph(graph.incidence(A))
 #' ## other format available \code{format = c("igraph","matrix","pairs")}
 #' M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
+#' M3 <- nbiNet(A,alpha=0.5,lamda=0.5,format="matrix")
 #' } 
 #' @export
 
@@ -253,9 +255,6 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","matrix","pairs")) {
     
     startT <- Sys.time()
-    s1=as.matrix(S1)
-    s2=as.matrix(S2)
-    lamda = 0.5
     format <- match.arg(format)
     now <- Sys.time()
     message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T)
@@ -277,13 +276,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
     
     n = nrow(adjM)
     m = ncol(adjM)
-    if (nrow(s2) != m || ncol(s2) != m) {
-        stop("The matrix s2 should be an m by m matrix with same number of columns as A.")
-    }
-    if (nrow(s1) != n || ncol(s1) != n) {
-        stop("The matrix s1 should be an n by n matrix with same number of rows as A")
-    }
-    if (!exists('s1') && !exists('s2')){
+    if (is.na(s1) && is.na(s2)){
         
         Ky <- diag(1/colSums(adjM))
         Ky[is.infinite(Ky) | is.na(Ky)] <- 0
@@ -309,6 +302,14 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
         invisible (rM)        
         
     } else {
+        
+        if (nrow(s2) != m || ncol(s2) != m) {
+            stop("The matrix s2 should be an m by m matrix with same number of columns as A.")
+        }
+        if (nrow(s1) != n || ncol(s1) != n) {
+            stop("The matrix s1 should be an n by n matrix with same number of rows as A")
+        }
+        
         Ky <- diag(1/colSums(adjM))
         Ky[is.infinite(Ky) | is.na(Ky)] <- 0
         
@@ -718,7 +719,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
     Q2 = nbiNet(A,lamda=nbi.lamda,alpha=nbi.alpha,s1=as.matrix(s1),s2=as.matrix(s2),format = "matrix")
     
     if (exists("Q1") && exists("Q2")){
-        M <- Q1+Q2
+        M <- (Q1+Q2)/2
         return (M)
     }
     
@@ -750,7 +751,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' }
 #' @export
 
-net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")){
+net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo","all")){
     
     auctop = numeric()
     aucc = numeric()
@@ -804,13 +805,46 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")
     #Sg_t <- randomizeMatrix(Sg_t,null.model = "frequency",iterations = 1000)
     
     #mat<-tMat(Sg_t,as.matrix(S1),as.matrix(S2),normalise="laplace")
-    #mat[is.na(mat)] <- 0
-    
+
     drugs <- re[,2]
     #N_M <- Sg_t[,colnames(Sg_t) %in% drugs]
     
     message(sprintf("Detected (%s) drugs & (%s) proteins with (%s) interactions...",n,m,totallinks))
     message(sprintf("Running prediction for (%s) links removed using (%s) .. ",as.character(relinks),as.character(algo)))
+    
+    performances <- function(predictR,m,re){
+        
+        s1<-predictR[1:m,]
+        s1<- scale(s1, center=FALSE, scale=colSums(s1,na.rm=TRUE))
+        s1[is.na(s1)] <- 0
+        test <- data.frame(re)
+        for (dis in 1:dim(s1)[2]) {
+            
+            drugname = colnames(s1)[dis]
+            subfr <- test[test$X2==drugname,]
+            p1name<-as.character(subfr$X1)
+            id = which(rownames(s1) %in% p1name)
+            clabel <- rep(0,m)
+            clabel[id] <- 1
+            res = cbind(s1[,dis],clabel)
+            colnames(res)[1] <- "score"
+            
+            d <- res[order(-res[,1]),]
+            ac <- auac(d[,1], d[,2])
+            au <- auc(d[,1], d[,2])
+            at <-  auac(d[,1], d[,2],top=0.1)
+            bd <- bedroc(d[,1], d[,2])
+            ef <- enrichment_factor(d[,1], d[,2],top=0.1)
+            aucc <- c(aucc, ac)
+            bdr <- c(bdr,bd)
+            efc <- c(efc,ef) 
+            auctop <- c(auctop,at)
+            
+        }
+        
+        scores = c(list(aucc = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
+        return (scores)
+    }
     
     if (algo == "rwr"){
         #par="True"
@@ -818,6 +852,8 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")
         mat = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T,multicores=4)
         #mat <-biNetwalk((mat,N_M,par=TRUE,r=0.7)
         predictR <- mat[,colnames(mat) %in% drugs]
+        scores <- performances(predictR,m,re)
+        return (scores)
     }
     else if (algo == "nbi"){
         message(sprintf("Running NBI Algorithm"))
@@ -825,6 +861,8 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")
         #S2 = S2[rownames(S2) %in% colnames(N_M),colnames(S2) %in% colnames(N_M)]   
         mat <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         predictR <- mat[,colnames(mat) %in% drugs]
+        scores <- performances(predictR,m,re)
+        return (scores)
     }
     
     else if(algo == "netcombo"){
@@ -832,41 +870,32 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo")
         #par="True"
         mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T)
         mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
-        mat = mat1+mat2
+        mat = (mat1+mat2)/2
         predictR <- mat[,colnames(mat) %in% drugs]
-    }
-    
-    
-    
-    s1<-predictR[1:m,]
-    s1<- scale(s1, center=FALSE, scale=colSums(s1,na.rm=TRUE))
-    s1[is.na(s1)] <- 0
-    test <- data.frame(re)
-    for (dis in 1:dim(s1)[2]){
-        drugname = colnames(s1)[dis]
-        subfr <- test[test$X2==drugname,]
-        p1name<-as.character(subfr$X1)
-        id = which(rownames(s1) %in% p1name)
-        clabel <- rep(0,m)
-        clabel[id] <- 1
-        res = cbind(s1[,dis],clabel)
-        colnames(res)[1] <- "score"
+        scores <- performances(predictR,m,re)
+        return (scores)
+    } else if (algo == "all"){
         
-        d <- res[order(-res[,1]),]
-        ac <- auac(d[,1], d[,2])
-        au <- auc(d[,1], d[,2])
-        at <-  auac(d[,1], d[,2],top=0.1)
-        bd <- bedroc(d[,1], d[,2])
-        ef <- enrichment_factor(d[,1], d[,2],top=0.1)
-        aucc <- c(aucc, ac)
-        bdr <- c(bdr,bd)
-        efc <- c(efc,ef) 
-        auctop <- c(auctop,at)
-
+        message(sprintf("Running all the algorithms ..."))
+        #par="True"
+        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T)
+        mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
+        mat3 <- (mat1+mat2)/2
+        predictR1 <- mat1[,colnames(mat1) %in% drugs]
+        predictR2 <- mat2[,colnames(mat2) %in% drugs]
+        predictR3 <- mat3[,colnames(mat3) %in% drugs]
+        
+        scores1 <- performances(predictR1,m,re)
+        scores2 <- performances(predictR2,m,re)
+        scores3 <- performances(predictR3,m,re)        
+        
+        list1 = list(type = 'rwr',score=scores1)
+        list2 = list(type = 'nbi',score=scores2)
+        list3 = list(type = 'netcombo',score=scores3)
+        scoreList = list(list1,list2,list3)
+        return (scoredataList)
+        
     }
-    
-    scores = c(list(aucc = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
-    return (scores)
 }
 
 #' Get top predicted results. 

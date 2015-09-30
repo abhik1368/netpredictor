@@ -10,9 +10,10 @@ nbiNet(A, alpha = 0.5, lamda = 0.5, s1 = NA, s2 = NA,
 \arguments{
 \item{A:}{Adjacency Matrix}
 
-\item{lamda:}{lamda parameter}
+\item{lamda:}{Tuning parameter (value between 0 and 1) which determines how the distribution of
+resources takes place in thesecond phase}
 
-\item{alpha:}{alpha parameter}
+\item{alpha:}{Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.}
 
 \item{S1:}{Target Similarity matrix}
 
@@ -37,6 +38,7 @@ S2 = as.matrix(enzyme_Gsim)
 g1 = upgrade_graph(graph.incidence(A))
 ## other format available \\code{format = c("igraph","matrix","pairs")}
 M2 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
+M3 <- nbiNet(A,alpha=0.5,lamda=0.5,format="matrix")
 }
 }
 \references{

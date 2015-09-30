@@ -5,7 +5,7 @@
 \title{Link Prediction Performance}
 \usage{
 net.perf(A, S1, S2, relinks = 100, numT = 2, Calgo = c("rwr", "nbi",
-  "netcombo"))
+  "netcombo", "all"))
 }
 \arguments{
 \item{A}{: Drug target association matrix}

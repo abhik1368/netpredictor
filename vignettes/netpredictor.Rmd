@@ -17,16 +17,14 @@ vignette: >
 
 [2. Installation](#installation)
 
-[3. Examples](#Examples)
+[3. Examples](#examples)
 
-[4. Analyzing Results](#analzying-results)
-
-[5. Citations](#citations)
+[4. Citations](#citations)
 
 _______
 
 ## 1. Introduction
-Social and biological systems can be represented by graphs where nodes represent individuals ,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to solve the problem of bipartite link prediction using Random walk with restart(RWR) and network based inference methods(NBI). We plan to integrate varierty of other algorithms in near future. All of the code is developed in R which also provides parallel execution modes. 
+Social and biological systems can be represented by graphs where nodes represent individuals,biological experiments(protein,genes,etc.) web users and so on. Networks allows methods of graph theory to be applied to the task of predicting links. Link prediction predicts missing links in networks or links in future networks, it is also important for mining and analyzing the evolution of networks. Link prediction problem is a long-standing challenge in modern information science, and a lot of algorithms based on Markov chains and statistical models have been proposed by computer science community. The link prediction problem is usually defined in unipartite graphs. The netpredictor package is developed to solve the problem of bipartite link prediction using Random walk with restart(RWR) and network based inference methods(NBI). We plan to integrate varierty of other algorithms in near future. All of the code is developed in R which also provides parallel execution modes. 
 
 Consider an undirected, unweighted network $G = (V, E)$, where V is the set of nodes and E is the set of links. For each pair of nodes  \{$a$,$b$} $\in$ V  we can assign a proximity score by executing the random walk procedure as follows : 
 
@@ -196,7 +194,7 @@ dim(Mat)
 
 ```
 
-In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format to Gephi specific file format. Below shows the example of exporting to GML format.
+In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. For community detection we used the walktrap algorithm [13], which places nodes into communities based on neighborhood similarity from short random walks.  We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format (Gephi specific file format) . Below shows the example of exporting to GML format.
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
 
@@ -227,6 +225,8 @@ head(result)
 
 ## Save the top results in GML format for visualization in Gephi.
 g<-graph.data.frame(result[,1:2],directed=FALSE)
+
+## Set the edge values
 g <- set.edge.attribute(g, "weight", value=result[,3])
 saveGML(g,"netresult.gml","netresult")
 
@@ -250,7 +250,7 @@ plot_Community(gp,cols=5)
 
 ```
 
-One can use net.perf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, bedroc, and Enrichment factor. In the example below we remove 50 links and repredict those links. While repredicting  them we calculate performance metrics like AUC,bedroc and enrichment factor. As the number of links (relinks) increases the performance of prediction drops. 'Calgo' option uses different algorithms like "nbi" ,"rwr" and "netcombo" . 
+One can use net.perf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, BEDROC (bdr), and Enrichment factor (EF). The area under the receiver operating characteristic (ROC) curve (AUC) is widely used metric for evaluation of predictive models. The advantage of using AUC is that it is bounded, between 0 to 1 with 0.5 corresponding to random prediction. But AUC method has been critized in cheminformatics based virtual screening methods because it is not sensitive to early recognition compounds . The EF tries to solve early recognition problem but it is dependent on the ratio of actives to inactives and the choice of subset X (fraction of active and inactive set) . To try and overcome these limitations numerous other evaluation methods, such as robust initial enhancement (RIE) [10] and Boltzmann-enhanced discrimination of ROC (BEDROC) have been proposed[11]. Sheridan et al. developed an exponential weighted scoring scheme RIE which gives heavier weight in “early recognized” hits. The BEDROC is constructed on top of RIE by, in essence, forcing the RIE to be bounded by 0 and 1, avoiding the dependence on the active/inactive ratio. In the example below we remove 50 links and repredict those links. While repredicting  them we calculate performance metrics like AUC,bedroc and enrichment factor. As the number of links (relinks) increases the performance of prediction drops. 'Calgo' option uses different algorithms like "nbi" ,"rwr" and "netcombo" . 
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
 
@@ -259,20 +259,73 @@ A = enzyme_ADJ
 S1 = enzyme_Gsim 
 S2= enzyme_Csim
 
+## We want to remove the links from the links which has two or more interactions.
 m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
 m
 
 ```
 
+In 2010 Zhou et al., proposed a recommendation method based
+on the bipartite network projection technique implementing the concept of
+resources transfer within the network. The method developed here is from the article DT-Hybrid where they integrated the similarity matrices of drugs and proteins in order to make the prediction with the heatS equation [12]. The example given below one can use both the methods of either using similarity matrices and also simply using heatS equation with the adjacency matrix. 
+
+```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
+
+data(Enzyme)
+A <- t(enzyme_ADJ) 
+S1 = as.matrix(enzyme_Csim) 
+S2 = as.matrix(enzyme_Gsim)
+g1 = graph.incidence(A)
+## Using the similarity matrices 
+P1 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
+## Get the significance graph 
+Z = sig.net(data=A,g=g1,Amatrix=P1,num.permutation=100,adjp.cutoff=0.01,
+            p.adjust.method="BH",parallel=FALSE)
+
+## Get the graph for plotting commnuties
+g <- Z$cgraph
+
+gp <- get.Communities(g)
+
+## Get members from the first community
+print(gp[[1]]$community)
+
+## Total number of communities
+length(gp)
+
+## Plot the communities with 5 columns
+plot_Community(gp,cols=3)
+
+## Using the heatS equation with the adjacency matrix.
+P2 <- nbiNet(A,alpha=0.5,lamda=0.5,format="matrix")
+
+```
+
+We also give users to compute performance metrics using different algorithms to get AUCC, AUC, auctop,bdr and efc so that one can 
+compare the performance using different algorithms.
+
+
+```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
+
+library(netpredictor)
+library(igraph)
+data(Enzyme)
+A <- t(enzyme_ADJ)
+S1 = as.matrix(enzyme_Csim)
+S2 = as.matrix(enzyme_Gsim)
+## Use all the algorithms NBI, RWR and netcombo
+m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="all")
+tab <- rbind(data.frame(m[[1]]),data.frame(m[[2]]),data.frame(m[[3]]))
+knitr::kable(tab)
+
+```
+
+Above table shows the performance of different algorithms.
+
 
 _______
 
-## 4. Analzying Results
-
-
-_______
-
-## 6. Citations
+## 5. Citations
 [1] Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
 
 [2] Can, T., Camoglu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
@@ -289,8 +342,12 @@ _______
 
 [8] Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978
 
-[9] Seal  A, Ahn  Y, Wild  DJ . Optimizing drug&#8211;target interaction prediction based on random walk on heterogeneous networks Journal of Cheminformatics 2015, 7:40.
+[9] Seal  A, Ahn  Y, Wild  DJ . Optimizing drug target interaction prediction based on random walk on heterogeneous networks Journal of Cheminformatics 2015, 7:40.
 
 [10] Truchon et al. Evaluating Virtual Screening Methods: Good and Bad Metrics for the "Early Recognition" Problem. J. Chem. Inf. Model. (2007) 47, 488-508.
 
 [11] Sheridan RP et al. Protocols for bridging the peptide to nonpeptide gap in topological similarity searches. J. Chem. Inf. Comput. Sci. (2001) 41, 1395-1406.
+
+[12] Alaimo S, Pulvirenti A, Giugno R, Ferro A: Drug-target interaction prediction through domain-tuned network-based inference. Bioinformatics 2013, 29(16):2004-2008.  
+
+[13]
