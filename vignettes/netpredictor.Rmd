@@ -320,9 +320,61 @@ knitr::kable(tab)
 
 ```
 
-Above table shows the performance of different algorithms.
+Above table shows the performance of different algorithms. Next we will look after how do we calculate a significant interaction using network based inference algorithm. We compute the association score between drug a target and we want to found out whether the predicted association score is significant or not . We make 1000 permutations of the association matrix and similarity matrix and compute NBI scores for 1000 random matrices and then we used a normal distribution to calculate p-value . We convert the original compute score to an associated Z-score. Once the Z-score is found the probability that the value could be less the Z-score is found using the pnorm command. Also for a two sided test we need to multiply the result by two. Below gives a idea how we can acheive this . We can create a significant network based on these significant associations found.
+
+```{r, eval= FALSE,results='asis' ,messages=TRUE,warning=FALSE}
+
+## Load the data 
+data(Enzyme)
+A <- t(enzyme_ADJ) 
+S1 = as.matrix(enzyme_Csim) 
+S2 = as.matrix(enzyme_Gsim)
+#g1 = graph.incidence(A)
 
 
+## Compute NBI 
+P1 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
+
+## Create a list where to store the matrices
+perm = list()
+
+## Set a random seed
+set.seed(12345)
+
+## Compute scores for 1000 permutations where you sample the matrix everytime
+for ( i in 1:1000){
+    A <- t(enzyme_ADJ)
+    A <- A[sample(nrow(A)),sample(ncol(A))]
+    S1 = as.matrix(enzyme_Csim) 
+    S2 = as.matrix(enzyme_Gsim)
+    S1 <- S1[sample(nrow(S1)),sample(ncol(S1))]
+    S2 <- S2[sample(nrow(S2)),sample(ncol(S2))]
+    R1 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
+    perm[[i]] <- R1
+}
+
+## Get the mean and standard deviation of the matrix
+
+mean_mat <- apply(simplify2array(perm), 1:2, mean)
+sd_mat  <-  apply(simplify2array(perm), 1:2, sd)
+
+## Comput the Z-score of matrix
+Z <- (P1 - mean_mat)/sd_mat
+
+## Compute the significance score
+sigNetwork <- 2*(pnorm(-abs(Z)))
+
+## Get the significant interactions where, P < 0.05
+sigNetwork[sigNetwork <  0.05] <- 1
+sigNetwork[sigNetwork != 1] <- 0
+
+sum(A) ## Total number of interactions we had earlier
+[1] 1515
+
+sum(sigNetwork) ## Total number of interactions after computation.
+[1] 2368
+
+```
 _______
 
 ## 5. Citations
