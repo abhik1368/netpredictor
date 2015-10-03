@@ -2,9 +2,7 @@
 \alias{netpredictor-package}
 \alias{netpredictor}
 \docType{package}
-\title{
-Link prediction and analysis of Bipartite Networks
-}
+\title{Link prediction and analysis of Bipartite Networks}
 \description{
 The package analyses the Unipartite and Bipartite networks and also algorithms have 
 been implemented for link prediction like Random walks with Restart, Network Based Inference and Heterogenous Graph based inference algorithms . More Graph based Machine Learning algorithms algorithms will be included in the upcoming versions.
@@ -41,20 +39,4 @@ Maintainer: abhik1368@gmail.com
 
 \seealso{
 \code{\link{igraph},\link{hgviNet},\link{biNetwalk},\link{nbiNet},\link{uNetwalk},\link{sig.net}}
-}
-\examples{
-g1 = graph.incidence(A)
-m <- get.incidence(g1)
-M1 <- hgviNet(g1,s1=S,s2=S1,alpha=0.4,steps=20)
-M2 <- nbiNet(A=m, lambda=0.5, alpha=0.5, S1=S, S2=S1,format ="matrix")
-M3 <- biNetwalk(g1,s1=S,s2=S1,normalise="laplace", dataSeed=NULL,file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
-Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",paralle=FALSE)
-g <- Z$cgraph
-gp <- get.Communities(g)
-length(gp)
-plot.Communities(gp,cols=5)
-
-## Unipartite RWR
-g1 <- erdos.renyi.game(100, 1/100)
-pM <- uNetwalk(g=g1,normalise="laplacian", restart=0.75, parallel=FALSE)
 }

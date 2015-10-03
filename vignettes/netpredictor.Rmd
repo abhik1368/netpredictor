@@ -33,7 +33,7 @@ Consider an undirected, unweighted network $G = (V, E)$, where V is the set of n
 - With the probability c, the walker goes back to a. 
 - After many time steps the probability of finding the random walker at node x converges to the steady-state probability, which is our proximity score $S_{a \rightarrow x}$.
 
-One of the most widely used ways to solve random walk with restart is the matrix iteration method, iterating the equation (1) until convergence, i.e, until the L2 norm of successive estimates of below our threshold T $10 ^ {-7}$.
+One of the most widely used ways to solve random walk w1ith restart is the matrix iteration method, iterating the equation (1) until convergence, i.e, until the L2 norm of successive estimates of below our threshold T $10 ^ {-7}$.
 \begin{equation}
 \begin{aligned}
 P_{t+1} = ( 1 - c ) W^{T} P_{t} + cP_{0}
@@ -94,8 +94,7 @@ score_mat <- unetSim(g1,"cosine")
 score_mat <- unetSim(g1,"pa")
 
 ## Local Paths Index
-## This function counts the number of two-paths and three-paths between nodes,
-#  with three-paths weighted by a parameter \eqn{\epsilon}.
+## This function counts the number of two-paths and three-paths between nodes.
 
 score_lpsim <- unetSim(g1,"lp")
 
@@ -250,10 +249,9 @@ plot_Community(gp,cols=5)
 
 ```
 
-One can use net.perf function it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, BEDROC (bdr), and Enrichment factor (EF). The area under the receiver operating characteristic (ROC) curve (AUC) is widely used metric for evaluation of predictive models. The advantage of using AUC is that it is bounded, between 0 to 1 with 0.5 corresponding to random prediction. But AUC method has been critized in cheminformatics based virtual screening methods because it is not sensitive to early recognition compounds . The EF tries to solve early recognition problem but it is dependent on the ratio of actives to inactives and the choice of subset X (fraction of active and inactive set) . To try and overcome these limitations numerous other evaluation methods, such as robust initial enhancement (RIE) [10] and Boltzmann-enhanced discrimination of ROC (BEDROC) have been proposed[11]. Sheridan et al. developed an exponential weighted scoring scheme RIE which gives heavier weight in “early recognized” hits. The BEDROC is constructed on top of RIE by, in essence, forcing the RIE to be bounded by 0 and 1, avoiding the dependence on the active/inactive ratio. In the example below we remove 50 links and repredict those links. While repredicting  them we calculate performance metrics like AUC,bedroc and enrichment factor. As the number of links (relinks) increases the performance of prediction drops. 'Calgo' option uses different algorithms like "nbi" ,"rwr" and "netcombo" . 
+One can use net.perf(), it samples and removes links from the adjacency matrix and predicts them and calculates area under accumulation curve, AUC, BEDROC (bdr), and Enrichment factor (EF). The area under the receiver operating characteristic (ROC) curve (AUC) is widely used metric for evaluation of predictive models. The advantage of using AUC is that it is bounded, between 0 to 1 with 0.5 corresponding to random prediction. But AUC method has been critized in cheminformatics based virtual screening methods because it is not sensitive to early recognition compounds . The EF tries to solve early recognition problem but it is dependent on the ratio of actives to inactives and the choice of subset X (fraction of active and inactive set) . To try and overcome these limitations numerous other evaluation methods, such as robust initial enhancement (RIE) [10] and Boltzmann-enhanced discrimination of ROC (BEDROC) have been proposed[11]. Sheridan et al. developed an exponential weighted scoring scheme RIE which gives heavier weight in “early recognized” hits. The BEDROC is constructed on top of RIE by, in essence, forcing the RIE to be bounded by 0 and 1, avoiding the dependence on the active/inactive ratio. In the example below we remove 50 links and repredict those links. While repredicting  them we calculate performance metrics like AUC,bedroc and enrichment factor. As the number of links (relinks) increases the performance of prediction drops. 'Calgo' option uses different algorithms like "nbi" , "rwr" and "netcombo" . 
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
-
 data(Enzyme)
 A = enzyme_ADJ 
 S1 = enzyme_Gsim 
@@ -378,7 +376,8 @@ sum(sigNetwork) ## Total number of interactions after computation.
 _______
 
 ## 5. Citations
-[1] Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949–958.
+
+[1] Kohler S, et al. Walking the Interactome for Prioritization of Candidate Disease Genes. American Journal of Human Genetics. 2008;82:949 – 958.
 
 [2] Can, T., Camoglu, O., and Singh, A.K. (2005). Analysis of protein-protein interaction networks using random walks. In BIOKDD '05: Proceedings of the 5th international workshop on Bioinformatics (New York, USA: Association for Computing Machinery). 61–68
 
@@ -402,4 +401,3 @@ _______
 
 [12] Alaimo S, Pulvirenti A, Giugno R, Ferro A: Drug-target interaction prediction through domain-tuned network-based inference. Bioinformatics 2013, 29(16):2004-2008.  
 
-[13]

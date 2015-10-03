@@ -359,7 +359,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' @param parallel: parallel performance either True or False . Parallelization is implemented using foreach.
 #' @param multicore: using multicores
 #' @references 
-#' \itemize {
+#' \itemize{
 #' \item {Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
 #' \item {Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.}
 #' }
@@ -893,7 +893,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
         list2 = list(type = 'nbi',score=scores2)
         list3 = list(type = 'netcombo',score=scores3)
         scoreList = list(list1,list2,list3)
-        return (scoredataList)
+        return (scoreList)
         
     }
 }
@@ -905,10 +905,10 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
 #' @param P: Drug target predicted matrix.
 #' @param top: top number of predicted targets.
 #' @param druglist: It accepts a vector of drugnames for which results will return
-#' @name netPredPerf
+#' @name getTopresults
 #' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 #' @examples
-#' \donttest {
+#' \donttest{
 #' data(Enzyme)
 #' A = enzyme_ADJ 
 #' S1 = enzyme_Gsim 

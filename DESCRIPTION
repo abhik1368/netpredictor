@@ -4,12 +4,13 @@ Title: netpredictor - Link prediction algorithms
 Version: 1.0
 Date: 2015-03-06
 Author: Abhik Seal <abhik1368@gmail.com>
-Depends: R (>= 3.1.3), igraph,utils,Matrix,parallel,foreach,doMC,Rook,enrichvs
+Depends: R (>= 3.1.3), igraph,utils,Matrix,parallel,enrichvs
 Maintainer: Abhik Seal <abhik1368@gmail.com>
 Description: This package provides methods to predict missing links using Network based inference and
              Random walk with restart. It also has methods to predict uknown links and check the performance of 
              of the method. 
+Encoding: latin1
 License: MIT
-imports: graph, Rgraphviz, Matrix,RCurl,roxygen2,rgexf,Rook,parallel,foreach,doMC,enrichvs
+imports: Rgraphviz,RCurl,knitr,rgexf,Rook,foreach,doMC
 LazyData: true
 VignetteBuilder: knitr
