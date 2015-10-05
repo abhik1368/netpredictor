@@ -8,9 +8,9 @@
 get.biClosenessCentrality(A, SM = TRUE)
 }
 \arguments{
-\item{A:}{Biparite matrix object}
+\item{A}{Biparite matrix object}
 
-\item{SM:}{TRUE or FALSE}
+\item{SM}{Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns degree centrality for all the nodes.}
 }
 \value{
 Returns a list scores of closeness centrality of the nodes.By deafult \code{SM=TRUE} which return the closeness centrality for two different sets of nodes.

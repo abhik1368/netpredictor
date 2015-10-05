@@ -158,10 +158,10 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
 #' @name get.Communities
 #' @description Get  the communities in a graph. It First decomposes the graph into components and then uses igraph's 
 #' various community detection algorithms to detect communities in a graph. 
-#' @param g: igraph object
-#' @param num.nodes: Number of nodes to keep in the community.
-#' @param calgo: The community algorithm to use to find the communities.
-#' @name get.Communities
+#' @param g igraph object
+#' @param num.nodes Number of nodes to keep in the community.
+#' @param calgo The community algorithm to use to find the communities.
+#' @usage get.Communities(g,num.nodes = 3,calgo = walktrap.community)
 #' @export 
 
 get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
@@ -215,6 +215,8 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
 #' @title plot_Community
 #' @description This uses an object of getCommuntiy class and extracts parameters to plot current communities. 
 #' @name plot_Community
+#' @param gc receives the results from \code{get.Communities} 
+#' @param cols number of columns to show in the plot
 #' @examples
 #' \dontrun{
 #' ## Run the Bipartite Random walk with Restart
@@ -268,8 +270,11 @@ plot_Community <- function(gc,cols=3) {
 #' @name get.biDegreeCentrality
 #' @description Measures graph degree centrality for bipartite graphs as well as Unipartite Graphs.The degree centrality of a vertex can be defined as fraction of incident edges over the number of all possible edges.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
-#' @param A: Biparite matrix object
+#' @param A Biparite matrix object
+#' @param loops Either TRUE or FALSE keep loops or remove it.
+#' @param SM Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns degree centrality for all the nodes.
 #' @return It returns a list of score of degree centrality of nodes at rows and nodes at columns.
+#' @usage get.biDegreeCentrality(A,loops=FALSE,SM=TRUE)
 #' @references
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
@@ -330,8 +335,9 @@ get.biDegreeCentrality <-function(A,loops=FALSE,SM=TRUE){
 #' @name get.biDensity
 #' @description Measures graph density  of bipartite graphs . The density captures the fraction of actual present edges over the number of all possible edges, given that multiple edges are not allowed.  
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
-#' @param A: Biparite matrix object
+#' @param A Biparite matrix object
 #' @return It returns a list of score of degree centrality of nodes at rows and nodes at columns.
+#' @usage get.biDensity(A)
 #' @references
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
@@ -396,8 +402,8 @@ bipartite.closeness.centrality <- function(g){
 #' @description Measures Closeness centrality of bipartite graphs . The closeness centrality of a vertex is inversely proportional to the total geodesic distance to all other vertices.  
 #' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central relative only to other vertices in the same subset.
 #' This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
-#' @param A: Biparite matrix object
-#' @param SM: TRUE or FALSE 
+#' @param A Biparite matrix object
+#' @param SM Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns degree centrality for all the nodes.
 #' @references
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
@@ -480,8 +486,9 @@ get.biClosenessCentrality <-function(A,SM=TRUE){
 #' weighted inversely by the total number of equivalent paths between the same two vertices, including those that do not pass through the given vertex.  
 #' It also has way to calculate single mode betweeness centrality. Single mode centralization for bipartite graphs measures the extent to which vertices in one vertex subset are central 
 #' relative only to other vertices in the same subset.This function is the adaption to bipartite graphs as presented in Borgatti and Everett (1997).
-#' @param A: Biparite matrix object
-#' @param SM: TRUE or FALSE 
+#' @param A Biparite matrix object
+#' @param SM Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns betweeness centrality for all the nodes.
+#' @usage get.biBetweenessCentrality(A,SM=TRUE)
 #' @references
 #' \itemize{
 #'   \item Borgatti, S. P. and Everett, M. G. (1997) Network analysis of 2--mode data. Social Networks \bold{19}, 243--269.
@@ -571,8 +578,10 @@ get.biBetweenessCentrality <- function(A,SM=TRUE){
 #' @name get.biWeightedProjection
 #' @description Projecting the Bipartite Network based on the vertex type (\code{TRUE} or \code{FALSE}).The mode \code{"shared-neighbours"} adds the number of shared neighbours in the bipartite graph to the edge linking two neighbours in the monopartite projection. 
 #' \code{"newman"} adopts the weighting scheme presented by Newman (2001), that weighs the contributions of shared neighbours by the size of their linkage profiles minus one.  
-#' @param A: Biparite matrix object
-#' @param mode: \code{'shared-neighbours'} and \code{'newman'} 
+#' @param A Biparite matrix object
+#' @param vertex Either TRUE of FALSE where if FALSE then off-diagonal elements represent edge weights, diagonal elements vertex weights
+#' @param mode \code{'shared-neighbours'} and \code{'newman'} 
+#' @usage get.biWeightedProjection(A,vertex=FALSE,mode='shared-neighbours')
 #' @references
 #' \itemize{
 #'   \item Newman M (2001) Scientific collaboration networks. II. Shortest paths, weighted networks, and centrality. Physical Review E 64.
@@ -581,7 +590,7 @@ get.biBetweenessCentrality <- function(A,SM=TRUE){
 #' @export
 
 
-get.biWeightedProjection <- function(A,vertex=FALSE,mode='shared-neighbours',weight=FALSE){
+get.biWeightedProjection <- function(A,vertex=FALSE,mode='shared-neighbours'){
     if (class(A) != "matrix"){
         stop("The function must apply to matrix object.\n")
         

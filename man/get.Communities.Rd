@@ -4,14 +4,14 @@
 \alias{get.Communities}
 \title{Get communities from a graph}
 \usage{
-get.Communities(g, num.nodes = 3, calgo = walktrap.community)
+get.Communities(g,num.nodes = 3,calgo = walktrap.community)
 }
 \arguments{
-\item{g:}{igraph object}
+\item{g}{igraph object}
 
-\item{num.nodes:}{Number of nodes to keep in the community.}
+\item{num.nodes}{Number of nodes to keep in the community.}
 
-\item{calgo:}{The community algorithm to use to find the communities.}
+\item{calgo}{The community algorithm to use to find the communities.}
 }
 \description{
 Get  the communities in a graph. It First decomposes the graph into components and then uses igraph's

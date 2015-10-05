@@ -8,19 +8,21 @@ netCombo(g1, s1, s2, nbi.alpha = 0.4, nbi.lamda = 0.5, norm = "laplace",
   restart = 0.8, par = TRUE)
 }
 \arguments{
-\item{g1:}{igraph object}
+\item{g1}{igraph object}
 
-\item{s1:}{Accepts a matrix object of similarity scores for targets.}
+\item{s1}{Accepts a matrix object of similarity scores for targets.}
 
-\item{s2:}{Accepts a matrix object similarity scores for compounds.}
+\item{s2}{Accepts a matrix object similarity scores for compounds.}
 
-\item{nbi.alpha:}{alpha value for network based inference.}
+\item{nbi.alpha}{alpha value for network based inference.}
 
-\item{nbi.lamda:}{lamda value for network based inference.}
+\item{nbi.lamda}{lamda value for network based inference.}
 
-\item{norm:}{normalization of matrices options are "laplace" or "none".}
+\item{norm}{normalization of matrices options are "laplace" or "none".}
 
-\item{par:}{parallel execution for RWR.}
+\item{restart}{restart parameter for RWR}
+
+\item{par}{parallel execution for RWR.}
 }
 \value{
 Matrix object with sum score values.
@@ -39,6 +41,8 @@ S1 = as.matrix(enzyme_Gsim)
 S2 = as.matrix(enzyme_Csim)
 g1 = graph.incidence(A)
 P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
+## With a different restart
+P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,restart=0.7,par=TRUE)
 }
 }
 

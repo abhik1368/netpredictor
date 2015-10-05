@@ -7,13 +7,13 @@
 getTopresults(A, P, top = 10, druglist = NULL)
 }
 \arguments{
-\item{A}{: Drug target association matrix.}
+\item{A}{Drug target association matrix.}
 
-\item{P:}{Drug target predicted matrix.}
+\item{P}{Drug target predicted matrix.}
 
-\item{top:}{top number of predicted targets.}
+\item{top}{top number of predicted targets.}
 
-\item{druglist:}{It accepts a vector of drugnames for which results will return}
+\item{druglist}{It accepts a vector of drugnames for which results will return}
 }
 \value{
 it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)

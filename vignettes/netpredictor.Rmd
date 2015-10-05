@@ -125,7 +125,7 @@ data(Enzyme)
 A <- t(enzyme_ADJ)
 
 ## degree Centrality of the Bipartite Graph
-get.biDegreeCentrality(A)
+get.biDegreeCentrality(A,SM=FALSE)
 
 ## Compute Graph density of Bipartite Graph
 get.biDensity(A)
@@ -135,7 +135,7 @@ get.biBetweenessCentrality(A)
 
 ## Projects Bipartite Networks into monopartite networks default method is shared 
 ## neighbours.
-get.biWeightedProjection(A)
+get.biWeightedProjection(A,weight = TRUE)
 
 ```
 

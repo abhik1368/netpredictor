@@ -4,12 +4,12 @@
 \alias{get.biBetweenessCentrality}
 \title{Betweeness centrality for bipartite graphs.}
 \usage{
-get.biBetweenessCentrality(A, SM = TRUE)
+get.biBetweenessCentrality(A,SM=TRUE)
 }
 \arguments{
-\item{A:}{Biparite matrix object}
+\item{A}{Biparite matrix object}
 
-\item{SM:}{TRUE or FALSE}
+\item{SM}{Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns betweeness centrality for all the nodes.}
 }
 \value{
 Returns a list scores of closeness centrality of the nodes. By deafult \code{SM=TRUE} which return the betweeness centrality for two different sets of nodes.

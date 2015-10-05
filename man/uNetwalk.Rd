@@ -9,19 +9,19 @@ uNetwalk(ig, normalise = c("row", "column", "laplacian", "none"),
   verbose = T)
 }
 \arguments{
-\item{ig:}{igraph object}
+\item{ig}{igraph object}
 
-\item{normalise:}{normalise method}
+\item{normalise}{normalise method}
 
-\item{dataSeed:}{vector or dataframe}
+\item{dataSeed}{vector or dataframe}
 
-\item{restart:}{restart probability parameter}
+\item{restart}{restart probability parameter}
 
-\item{parallel:}{to execute in parallel either TRUE or FALSE}
+\item{parallel}{to execute in parallel either TRUE or FALSE}
 
-\item{multcores:}{Number of cores to be used when running in parallel}
+\item{multicores}{Number of cores to be used when running in parallel}
 
-\item{Verbose:}{Verbose output}
+\item{verbose}{Verbose output}
 }
 \description{
 Peforms random walk with restart with preferred seed sets. If seed sets are not given then the adjacencny
@@ -46,7 +46,8 @@ d1 <- c(1,0,1,0,1)
 d2 <- c(0,0,1,0,1)
 dataSeed <- data.frame(d1,d2)
 rownames(dataSeed) <- 1:5
-pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
+pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8,
+               parallel=FALSE,multicores=NULL, verbose=T)
 }
 }
 \references{

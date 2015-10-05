@@ -2,16 +2,19 @@
 % Please edit documentation in R/results.R
 \name{saveGML}
 \alias{saveGML}
-\title{save GML}
+\title{save as GML}
 \usage{
-saveGML(g, fileName, title = "untitled")
+saveGMLsaveGML(g,fileName="netresult.gml",title="netresult")
 }
 \arguments{
-\item{g:}{igraph object}
+\item{g}{igraph object}
 
-\item{fileName:}{exported file name}
+\item{fileName}{exported file name}
 
-\item{title:}{title of the exported file name}
+\item{title}{title of the exported file name}
+}
+\value{
+Outputs a GML format file for loading into cytoscape.s
 }
 \description{
 Export an igraph object to GML file which can be in Cytoscape or Gephi.

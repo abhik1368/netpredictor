@@ -9,23 +9,23 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
   weight = FALSE)
 }
 \arguments{
-\item{g1:}{Bipartite graph igraph object.}
+\item{g1}{Bipartite graph igraph object.}
 
-\item{s1:}{Accepts a matrix object of similarity scores for targets.}
+\item{s1}{Accepts a matrix object of similarity scores for targets.}
 
-\item{s2:}{Accepts a matrix object similarity scores for compounds.}
+\item{s2}{Accepts a matrix object similarity scores for compounds.}
 
-\item{normalise:}{Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)}
+\item{normalise}{Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)}
 
-\item{dataSeed:}{seeds file}
+\item{dataSeed}{seeds file}
 
-\item{file:}{Accepts file for seeds}
+\item{restart}{restart value}
 
-\item{restart:}{restart value}
+\item{parallel}{parallel performance either True or False . Parallelization is implemented using foreach.}
 
-\item{parallel:}{parallel performance either True or False . Parallelization is implemented using foreach.}
+\item{multicores}{using multicores}
 
-\item{multicore:}{using multicores}
+\item{weight}{if we want to use a weighted network . Options are either TRUE or FALSE.}
 }
 \description{
 Randomm walk with restart on Bipartite networks
@@ -37,7 +37,11 @@ A <- enzyme_ADJ
 S2 = enzyme_Csim
 S1 = enzyme_Gsim
 g1 = graph.incidence(A)
-M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8,
+                parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+dataF<- read.csv("seedFile.csv",header=FALSE)
+Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
+                 parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
 }
 }
 \references{

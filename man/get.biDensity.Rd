@@ -7,7 +7,7 @@
 get.biDensity(A)
 }
 \arguments{
-\item{A:}{Biparite matrix object}
+\item{A}{Biparite matrix object}
 }
 \value{
 It returns a list of score of degree centrality of nodes at rows and nodes at columns.

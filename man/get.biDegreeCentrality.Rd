@@ -4,10 +4,14 @@
 \alias{get.biDegreeCentrality}
 \title{Degree centrality for Bipartite Graphs.}
 \usage{
-get.biDegreeCentrality(A, loops = FALSE, SM = TRUE)
+get.biDegreeCentrality(A,loops=FALSE,SM=TRUE)
 }
 \arguments{
-\item{A:}{Biparite matrix object}
+\item{A}{Biparite matrix object}
+
+\item{loops}{Either TRUE or FALSE keep loops or remove it.}
+
+\item{SM}{Either TRUE or FALSE . If TRUE returns average centrality for rows and columns. If false returns degree centrality for all the nodes.}
 }
 \value{
 It returns a list of score of degree centrality of nodes at rows and nodes at columns.

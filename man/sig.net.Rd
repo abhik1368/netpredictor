@@ -9,23 +9,23 @@ sig.net(data, g, Amatrix, num.permutation = 10, adjp.cutoff = 0.05,
   "fdr"), parallel = TRUE, multicores = NULL, verbose = T)
 }
 \arguments{
-\item{data:}{n x m Adjancency matrix of seeds or dataframe of pairs.}
+\item{data}{n x m Adjancency matrix of seeds or dataframe of pairs.}
 
-\item{g:}{igrah object of bipartite indcident adjacency matrix.}
+\item{g}{igrah object of bipartite indcident adjacency matrix.}
 
-\item{Amatrix:}{Affinity matrix computed from biNetWalk or uNetWalk.}
+\item{Amatrix}{Affinity matrix computed from biNetWalk or uNetWalk.}
 
-\item{num.permutation:}{number of permutation of Affinity matrix needed to performed.}
+\item{num.permutation}{number of permutation of Affinity matrix needed to performed.}
 
-\item{adjp.cutoff:}{pvalue cutoff 0.05}
+\item{adjp.cutoff}{pvalue cutoff 0.05}
 
-\item{p.adjust.method:}{Adjusting the pvalue by diiferent method.It uses method from the stats package.}
+\item{p.adjust.method}{Adjusting the pvalue by diiferent method.It uses method from the stats package.}
 
-\item{parallel:}{Using parallization either True or False}
+\item{parallel}{Using parallization either True or False}
 
-\item{multicores:}{If parallisation is set TRUE number of cores to perform parallel computaion.}
+\item{multicores}{If parallisation is set TRUE number of cores to perform parallel computaion.}
 
-\item{Verbose:}{For verbose output.}
+\item{verbose}{For verbose output.}
 }
 \description{
 Significance of Bipartite networks
@@ -38,7 +38,7 @@ S1 = enzyme_Gsim
 S2 = enzyme_Csim
 g1 = graph.incidence(A)
 Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
-Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE,verbose=T)
 }
 }
 

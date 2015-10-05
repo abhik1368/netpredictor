@@ -12,7 +12,7 @@ been implemented for link prediction like Random walks with Restart, Network Bas
 Package: \tab netpredicter\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
-Date: \tab 2015-03-06\cr
+Date: \tab 2015-10-02\cr
 License: \tab MIT\cr
 }
 To install the netpredictor
@@ -38,5 +38,5 @@ Maintainer: abhik1368@gmail.com
 }
 
 \seealso{
-\code{\link{igraph},\link{hgviNet},\link{biNetwalk},\link{nbiNet},\link{uNetwalk},\link{sig.net}}
+\code{\link{igraph},\link{biNetwalk},\link{nbiNet},\link{uNetwalk},\link{sig.net}}
 }

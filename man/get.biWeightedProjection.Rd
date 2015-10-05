@@ -4,13 +4,14 @@
 \alias{get.biWeightedProjection}
 \title{Projecting Bipartite Networks.}
 \usage{
-get.biWeightedProjection(A, vertex = FALSE, mode = "shared-neighbours",
-  weight = FALSE)
+get.biWeightedProjection(A,vertex=FALSE,mode='shared-neighbours')
 }
 \arguments{
-\item{A:}{Biparite matrix object}
+\item{A}{Biparite matrix object}
 
-\item{mode:}{\code{'shared-neighbours'} and \code{'newman'}}
+\item{vertex}{Either TRUE of FALSE where if FALSE then off-diagonal elements represent edge weights, diagonal elements vertex weights}
+
+\item{mode}{\code{'shared-neighbours'} and \code{'newman'}}
 }
 \value{
 Returns a igraph object of the projected matrix with edge weights.

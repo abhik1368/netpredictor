@@ -8,18 +8,18 @@ nbiNet(A, alpha = 0.5, lamda = 0.5, s1 = NA, s2 = NA,
   format = c("igraph", "matrix", "pairs"))
 }
 \arguments{
-\item{A:}{Adjacency Matrix}
+\item{A}{Adjacency Matrix}
 
-\item{lamda:}{Tuning parameter (value between 0 and 1) which determines how the distribution of
+\item{alpha}{Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.}
+
+\item{lamda}{Tuning parameter (value between 0 and 1) which determines how the distribution of
 resources takes place in thesecond phase}
 
-\item{alpha:}{Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.}
+\item{s1}{Target Similarity matrix}
 
-\item{S1:}{Target Similarity matrix}
+\item{s2}{Chemical Similarity Matrix}
 
-\item{S2:}{Chemical Similarity Matrix}
-
-\item{format:}{type of file as Adjacnency file}
+\item{format}{type of file as Adjacnency file}
 }
 \description{
 Given a bipartite graph , a two phase resource transfer Information from  X(x,y,z) set of nodes gets distributed to Y set of nodes and then again goes back to resource X.

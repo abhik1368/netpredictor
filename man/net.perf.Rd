@@ -4,23 +4,23 @@
 \alias{net.perf}
 \title{Link Prediction Performance}
 \usage{
-net.perf(A, S1, S2, relinks = 100, numT = 2, Calgo = c("rwr", "nbi",
-  "netcombo", "all"))
+net.perf(A, S1, S2, relinks = 100, numT = 2, norm = "laplace",
+  Calgo = c("rwr", "nbi", "netcombo", "all"))
 }
 \arguments{
-\item{A}{: Drug target association matrix}
+\item{A}{Drug target association matrix}
 
-\item{S1}{: Sequence similarity matrix object}
+\item{S1}{Sequence similarity matrix object}
 
-\item{S2:}{Accepts a matrix object similarity scores for compounds.}
+\item{S2}{Accepts a matrix object similarity scores for compounds.}
 
-\item{relinks:}{Number of links to remove randomly from the input matrix.}
+\item{relinks}{Number of links to remove randomly from the input matrix.}
 
-\item{numT:}{Frequency of the number of targets.}
+\item{numT}{Frequency of the number of targets.}
 
-\item{Calgo:}{Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo".}
+\item{norm}{normalization of matrices options are "laplace" or "none".}
 
-\item{norm:}{normalization of matrices options are "laplace" or "none".}
+\item{Calgo}{Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo".}
 }
 \value{
 it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
@@ -41,7 +41,7 @@ data(Enzyme)
 A = enzyme_ADJ
 S1 = enzyme_Gsim
 S2= enzyme_Csim
-m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+m = net.perf(A,S1,S2,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
 }
 }
 

@@ -6,6 +6,11 @@
 \usage{
 plot_Community(gc, cols = 3)
 }
+\arguments{
+\item{gc}{receives the results from \code{get.Communities}}
+
+\item{cols}{number of columns to show in the plot}
+}
 \description{
 This uses an object of getCommuntiy class and extracts parameters to plot current communities.
 }

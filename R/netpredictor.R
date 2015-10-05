@@ -4,13 +4,13 @@
 #' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
 #' changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
 #' Parallalization is implemented with multicores. Parallization is done using foreach package. 
-#' @param ig: igraph object
-#' @param normalise: normalise method 
-#' @param dataSeed: vector or dataframe
-#' @param restart: restart probability parameter
-#' @param parallel: to execute in parallel either TRUE or FALSE
-#' @param multcores: Number of cores to be used when running in parallel
-#' @param Verbose: Verbose output
+#' @param ig igraph object
+#' @param normalise normalise method 
+#' @param dataSeed vector or dataframe
+#' @param restart restart probability parameter
+#' @param parallel to execute in parallel either TRUE or FALSE
+#' @param multicores Number of cores to be used when running in parallel
+#' @param verbose Verbose output
 #' @name uNetwalk
 #' @references  
 #' \itemize{
@@ -32,7 +32,8 @@
 #' d2 <- c(0,0,1,0,1)
 #' dataSeed <- data.frame(d1,d2)
 #' rownames(dataSeed) <- 1:5
-#' pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, parallel=FALSE)
+#' pM <- uNetwalk(g1, normalise="laplacian", dataSeed=dataSeed, restart=0.8, 
+#'                parallel=FALSE,multicores=NULL, verbose=T)
 #' }
 
 uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
@@ -223,13 +224,13 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' This process allows us to define a technique for the calculation of the weight matrix W. if the similarity matrices are not provided it uses 
 #' bipartite graph to compute netowrk based inference .   
 #' @name nbiNet
-#' @param A: Adjacency Matrix
-#' @param lamda: Tuning parameter (value between 0 and 1) which determines how the distribution of 
+#' @param A Adjacency Matrix
+#' @param lamda Tuning parameter (value between 0 and 1) which determines how the distribution of 
 #'                resources takes place in thesecond phase
-#' @param alpha: Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.
-#' @param S1: Target Similarity matrix
-#' @param S2: Chemical Similarity Matrix
-#' @param format: type of file as Adjacnency file
+#' @param alpha Tuning parameter (value between 0 and 1) to adjust the performance of the algorithm.
+#' @param s1 Target Similarity matrix
+#' @param s2 Chemical Similarity Matrix
+#' @param format type of file as Adjacnency file
 #' @name nbiNet
 #' @references 
 #' \itemize{
@@ -349,15 +350,15 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' Randomm walk with restart on Bipartite networks
 #' @title Bipartite Random Walk
 #' @name biNetwalk
-#' @param g1: Bipartite graph igraph object.
-#' @param s1: Accepts a matrix object of similarity scores for targets.
-#' @param s2: Accepts a matrix object similarity scores for compounds.
-#' @param normalise: Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
-#' @param dataSeed: seeds file
-#' @param file: Accepts file for seeds
-#' @param restart: restart value
-#' @param parallel: parallel performance either True or False . Parallelization is implemented using foreach.
-#' @param multicore: using multicores
+#' @param g1 Bipartite graph igraph object.
+#' @param s1 Accepts a matrix object of similarity scores for targets.
+#' @param s2 Accepts a matrix object similarity scores for compounds.
+#' @param normalise Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
+#' @param dataSeed seeds file
+#' @param restart restart value
+#' @param parallel parallel performance either True or False . Parallelization is implemented using foreach.
+#' @param multicores using multicores
+#' @param weight if we want to use a weighted network . Options are either TRUE or FALSE.
 #' @references 
 #' \itemize{
 #' \item {Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
@@ -370,7 +371,11 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' S2 = enzyme_Csim 
 #' S1 = enzyme_Gsim
 #' g1 = graph.incidence(A)
-#' M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+#' M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8, 
+#'                 parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+#' dataF<- read.csv("seedFile.csv",header=FALSE)
+#' Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
+#'                  parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
 #' }
 #' @export
 
@@ -402,16 +407,17 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
     }
     normalise <- match.arg(normalise)
     
-    
+    if (weight){
     if ("weight" %in% list.edge.attributes(g1)){
         adjM <- get.incidence(g1, attr="weight", names=T)
         if(verbose){
             message(sprintf("Notes: using weighted graph!"), appendLF=T)
         }
+    }
     }else{
         adjM <- get.incidence(g1, attr=NULL, names=T)
         if(verbose){
-            message(sprintf("Notes: using unweighted graph!"), appendLF=T)
+            message(sprintf("Note: using unweighted graph!"), appendLF=T)
         }
     }
     adjM <- as.matrix(adjM)
@@ -485,15 +491,15 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
 
 #' Significance of Bipartite networks 
 #' @title Significant Network
-#' @param data: n x m Adjancency matrix of seeds or dataframe of pairs.
-#' @param g: igrah object of bipartite indcident adjacency matrix.
-#' @param Amatrix: Affinity matrix computed from biNetWalk or uNetWalk.
-#' @param num.permutation: number of permutation of Affinity matrix needed to performed.
-#' @param adjp.cutoff: pvalue cutoff 0.05 
-#' @param p.adjust.method: Adjusting the pvalue by diiferent method.It uses method from the stats package.  
-#' @param parallel: Using parallization either True or False
-#' @param multicores: If parallisation is set TRUE number of cores to perform parallel computaion.
-#' @param Verbose: For verbose output.
+#' @param data n x m Adjancency matrix of seeds or dataframe of pairs.
+#' @param g igrah object of bipartite indcident adjacency matrix.
+#' @param Amatrix Affinity matrix computed from biNetWalk or uNetWalk.
+#' @param num.permutation number of permutation of Affinity matrix needed to performed.
+#' @param adjp.cutoff pvalue cutoff 0.05 
+#' @param p.adjust.method Adjusting the pvalue by diiferent method.It uses method from the stats package.  
+#' @param parallel Using parallization either True or False
+#' @param multicores If parallisation is set TRUE number of cores to perform parallel computaion.
+#' @param verbose For verbose output.
 #' @name sig.net
 #' @examples
 #' \donttest{
@@ -503,7 +509,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
 #' S2 = enzyme_Csim
 #' g1 = graph.incidence(A)
 #' Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
-#' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE)
+#' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE,verbose=T)
 #' } 
 #' @export
 
@@ -673,13 +679,14 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 #' NetCombo
 #' @title  NetCombo
 #' @description Peforms computation three different algorithms like random walk, network based inference and heterogenous based inference and finally computes the sum of the predicted score and generates the final matrix.
-#' @param g1: igraph object
-#' @param s1: Accepts a matrix object of similarity scores for targets.
-#' @param s2: Accepts a matrix object similarity scores for compounds.
-#' @param nbi.alpha: alpha value for network based inference.
-#' @param nbi.lamda: lamda value for network based inference.
-#' @param norm: normalization of matrices options are "laplace" or "none".
-#' @param par: parallel execution for RWR.
+#' @param g1 igraph object
+#' @param s1 Accepts a matrix object of similarity scores for targets.
+#' @param s2 Accepts a matrix object similarity scores for compounds.
+#' @param nbi.alpha alpha value for network based inference.
+#' @param nbi.lamda lamda value for network based inference.
+#' @param norm normalization of matrices options are "laplace" or "none".
+#' @param restart restart parameter for RWR
+#' @param par parallel execution for RWR.
 #' @return Matrix object with sum score values. 
 #' @name netCombo
 #' @examples
@@ -690,6 +697,8 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
 #' S2 = as.matrix(enzyme_Csim)
 #' g1 = graph.incidence(A)
 #' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,par=TRUE)
+#' ## With a different restart
+#' P <- netCombo(g1,s1=S1,s2=S2,nbi.alpha=0.5,nbi.lamda=0.5,restart=0.7,par=TRUE)
 #' }
 #' @export
 
@@ -728,13 +737,13 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' get the performance of the link Prediction algorithms. 
 #' @title  Link Prediction Performance
 #' @description This function samples links and removies links from the adjacency matrix and predicts them and calculates  area under accumulation curve, AUC, bedroc, and Enrichment factor. 
-#' @param S1 : Sequence similarity matrix object
-#' @param A : Drug target association matrix
-#' @param S2: Accepts a matrix object similarity scores for compounds.
-#' @param relinks: Number of links to remove randomly from the input matrix.
-#' @param numT: Frequency of the number of targets.
-#' @param Calgo: Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo". 
-#' @param norm: normalization of matrices options are "laplace" or "none".   
+#' @param S1 Sequence similarity matrix object
+#' @param A Drug target association matrix
+#' @param S2 Accepts a matrix object similarity scores for compounds.
+#' @param relinks Number of links to remove randomly from the input matrix.
+#' @param numT Frequency of the number of targets.
+#' @param Calgo Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo". 
+#' @param norm normalization of matrices options are "laplace" or "none".   
 #' @name net.perf
 #' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 #' \itemize{
@@ -747,11 +756,11 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' A = enzyme_ADJ 
 #' S1 = enzyme_Gsim 
 #' S2= enzyme_Csim
-#' m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+#' m = net.perf(A,S1,S2,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
 #' }
 #' @export
 
-net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo","all")){
+net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","nbi","netcombo","all")){
     
     auctop = numeric()
     aucc = numeric()
@@ -807,8 +816,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
     #mat<-tMat(Sg_t,as.matrix(S1),as.matrix(S2),normalise="laplace")
 
     drugs <- re[,2]
-    #N_M <- Sg_t[,colnames(Sg_t) %in% drugs]
-    
+
     message(sprintf("Detected (%s) drugs & (%s) proteins with (%s) interactions...",n,m,totallinks))
     message(sprintf("Running prediction for (%s) links removed using (%s) .. ",as.character(relinks),as.character(algo)))
     
@@ -849,7 +857,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
     if (algo == "rwr"){
         #par="True"
         message(sprintf("Running RWR Algorithm"))
-        mat = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T,multicores=4)
+        mat = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T,multicores=4)
         #mat <-biNetwalk((mat,N_M,par=TRUE,r=0.7)
         predictR <- mat[,colnames(mat) %in% drugs]
         scores <- performances(predictR,m,re)
@@ -868,7 +876,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
     else if(algo == "netcombo"){
         message(sprintf("Running NetCombo Algorithm"))
         #par="True"
-        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T)
+        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T)
         mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat = (mat1+mat2)/2
         predictR <- mat[,colnames(mat) %in% drugs]
@@ -878,7 +886,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
         
         message(sprintf("Running all the algorithms ..."))
         #par="True"
-        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",parallel=TRUE,verbose=T)
+        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T)
         mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat3 <- (mat1+mat2)/2
         predictR1 <- mat1[,colnames(mat1) %in% drugs]
@@ -901,10 +909,10 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,Calgo = c("rwr","nbi","netcombo",
 #' Get top predicted results. 
 #' @title  Get Top Results
 #' @description The function returns the given top number of predicted results along with true interactions.
-#' @param A : Drug target association matrix.
-#' @param P: Drug target predicted matrix.
-#' @param top: top number of predicted targets.
-#' @param druglist: It accepts a vector of drugnames for which results will return
+#' @param A Drug target association matrix.
+#' @param P Drug target predicted matrix.
+#' @param top top number of predicted targets.
+#' @param druglist It accepts a vector of drugnames for which results will return
 #' @name getTopresults
 #' @return it returns a list of aucc,auc, bedorc,enrichment factor and auc (top 10%)
 #' @examples

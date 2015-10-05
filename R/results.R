@@ -1,9 +1,12 @@
 #' Export file to GML
-#' @title save GML 
+#' @name saveGML
+#' @title save as GML 
 #' @description Export an igraph object to GML file which can be in Cytoscape or Gephi.
-#' @param g: igraph object
-#' @param fileName: exported file name
-#' @param title: title of the exported file name
+#' @param g igraph object
+#' @param fileName exported file name
+#' @param title title of the exported file name
+#' @return Outputs a GML format file for loading into cytoscape.s
+#' @usage saveGMLsaveGML(g,fileName="netresult.gml",title="netresult")
 #' @export  
 
 saveGML = function(g, fileName, title = "untitled") {
@@ -63,11 +66,13 @@ saveGML = function(g, fileName, title = "untitled") {
 }
 
 #' Export file to GML
-#' @title save GML 
+#' @name saveASGEXF
+#' @title save as GEXF
 #' @description Export an igraph object to gexf format graph file which can be in opened in Gephi.
-#' @param g: igraph object
-#' @param filepath: output graph name
+#' @param g igraph object
+#' @param filepath output graph name
 #' @return Outputs a Gephi format gexf graph
+#' @usage saveAsGEXF(g, filepath="output.gexf")
 #' @export
 
 saveAsGEXF = function(g, filepath="output.gexf")
