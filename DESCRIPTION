@@ -11,7 +11,7 @@ Description: This package provides methods to predict missing links using Networ
              of the method. 
 Encoding: latin1
 License: MIT
-Imports: Rgraphviz,RCurl,knitr,rgexf,Rook,foreach,doMC,knitr,Matrix,parallel,igraph,enrichvs,parallel,utils
+Imports: RCurl,knitr,rgexf,Rook,foreach,doMC,knitr,Matrix,parallel,igraph,enrichvs,parallel,utils
 LazyData: true
 VignetteBuilder: knitr
-biocViews:GraphAndNetworks
+
