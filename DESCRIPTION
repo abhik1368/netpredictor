@@ -14,4 +14,4 @@ License: MIT
 Imports: Rgraphviz,RCurl,knitr,rgexf,Rook,foreach,doMC,knitr,Matrix,parallel,igraph,enrichvs,parallel,utils
 LazyData: true
 VignetteBuilder: knitr
-biocViews:GraphAndNetwork
+biocViews:GraphAndNetworks
