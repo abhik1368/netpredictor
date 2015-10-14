@@ -6,6 +6,5 @@ apt_packages:
  - libxml2-dev
  
 r_github_packages:
-  - yihui/printr
   - abhik1368/netpredicter
 
