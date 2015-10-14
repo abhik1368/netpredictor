@@ -177,6 +177,14 @@ In this example we attempt to use the dataseed file which contains the pairs rel
 
 suppressPackageStartupMessages(require(igraph))
 suppressPackageStartupMessages(require(netpredictor))
+<<<<<<< Updated upstream
+=======
+install.packages(
+    'printr',
+    type = 'source',
+    repos = c('http://yihui.name/xran', 'http://cran.rstudio.com')
+)
+>>>>>>> Stashed changes
 data(Enzyme)
 
 A <- t(enzyme_ADJ)
@@ -188,9 +196,6 @@ dataF<- read.csv("seedFile.csv",header=FALSE)
 knitr::kable(dataF)
 Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed =dataF,
                  restart=0.8,parallel=TRUE, multicores=NULL, verbose=T)
-dim(Mat)
-
-
 ```
 
 In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. For community detection we used the walktrap algorithm [13], which places nodes into communities based on neighborhood similarity from short random walks.  We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format (Gephi specific file format) . Below shows the example of exporting to GML format.
