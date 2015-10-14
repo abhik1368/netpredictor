@@ -174,9 +174,7 @@ In this example we attempt to use the dataseed file which contains the pairs rel
 ```{r, eval= TRUE,results='asis' ,messages=TRUE}
 
 suppressPackageStartupMessages(require(igraph))
-suppressPackageStartupMessages(require(netpredictor))
-
-
+library(netpredictor)
 data(Enzyme)
 
 A <- t(enzyme_ADJ)
