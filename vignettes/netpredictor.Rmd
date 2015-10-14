@@ -182,7 +182,6 @@ install.packages(
     type = 'source',
     repos = c('http://yihui.name/xran', 'http://cran.rstudio.com')
 )
-library(printr)
 data(Enzyme)
 
 A <- t(enzyme_ADJ)
