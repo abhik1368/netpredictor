@@ -43,7 +43,7 @@ M3 <- nbiNet(A,alpha=0.5,lamda=0.5,format="matrix")
 }
 \references{
 \itemize{
-\item Cheng F, et al. Prediction of drug-target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
+\item Cheng F, et al. Prediction of drug target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
 \item Zhou T, et al. Solving the apparent diversity-accuracy dilemma of recommender systems. Proc. Natl Acad. Sci. USA 2010;107:4511-4515.
 \item Zhou T, et al. Bipartite network projection and personal recommendation. Phys. Rev. E Stat. Nonlin. Soft Matter Phys. 2007;76:046115.
 \item Blog post from Abhik Seal \url{http://data2quest.blogspot.com/2015/02/link-prediction-using-network-based.html}

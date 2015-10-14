@@ -46,7 +46,7 @@ Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
 }
 \references{
 \itemize{
-\item {Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
+\item {Chen X, et al. Drug target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
 \item {Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.}
 }
 }

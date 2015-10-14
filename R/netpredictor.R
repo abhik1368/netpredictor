@@ -1,4 +1,3 @@
-#' Random walk on unipartite networks
 #' @title Perform Random walk on a Unipartite Network
 #' @description Peforms random walk with restart with preferred seed sets. If seed sets are not given then the adjacencny
 #' matrix is taken as the input as the input seed sets. THe restart parameter controls the random walk probability . This can be 
@@ -234,7 +233,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
 #' @name nbiNet
 #' @references 
 #' \itemize{
-#' \item Cheng F, et al. Prediction of drug-target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
+#' \item Cheng F, et al. Prediction of drug target interactions and drug repositioning via network-based inference. PLoS Comput. Biol. 2012;8:e1002503.
 #' \item Zhou T, et al. Solving the apparent diversity-accuracy dilemma of recommender systems. Proc. Natl Acad. Sci. USA 2010;107:4511-4515.
 #' \item Zhou T, et al. Bipartite network projection and personal recommendation. Phys. Rev. E Stat. Nonlin. Soft Matter Phys. 2007;76:046115.
 #' \item Blog post from Abhik Seal \url{http://data2quest.blogspot.com/2015/02/link-prediction-using-network-based.html}
@@ -361,7 +360,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' @param weight if we want to use a weighted network . Options are either TRUE or FALSE.
 #' @references 
 #' \itemize{
-#' \item {Chen X, et al. Drug–target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
+#' \item {Chen X, et al. Drug target interaction prediction by random walk on the heterogeneous network. Mol. BioSyst 2012;8:1970-1978.}
 #' \item {Vanunu O, Sharan R. Proceedings of the German Conference on Bioinformatics. Germany: GI; 2008. A propagation-based algorithm for inferring gene-disease assocations; pp. 54–63.}
 #' }
 #' @examples

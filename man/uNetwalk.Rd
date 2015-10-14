@@ -29,9 +29,6 @@ matrix is taken as the input as the input seed sets. THe restart parameter contr
 changed default is set to 0.8. Normalization of the matrix can be done by row,column,laplacian. For faster computation
 Parallalization is implemented with multicores. Parallization is done using foreach package.
 }
-\details{
-Random walk on unipartite networks
-}
 \examples{
 \donttest{
 # generate a random graph according to the ER model
