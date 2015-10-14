@@ -49,6 +49,7 @@ A stable tested version of SAGA is available from the CRAN repository or the mos
 Installing from github
 
      install.packages("devtools")
+     library(devtools)
      install_github("abhik1368/netpredicter")     
 
 _______
