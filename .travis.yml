@@ -4,6 +4,7 @@ sudo: required
 apt_packages:
  - libcurl4-openssl-dev
  - libxml2-dev
- 
+r_packages:
+- printr
 r_github_packages:
   - abhik1368/netpredicter
