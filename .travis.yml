@@ -8,13 +8,14 @@ apt_packages:
 r_binary_packages:
 - RCurl
 - knitr
-- rgexf
 - Rook
 - foreach
 - doMC
 - Matrix
-- parallel
 - igraph
+
+r_packages:
+- rgexf
+- parallel
 - enrichvs
 - utils
-
