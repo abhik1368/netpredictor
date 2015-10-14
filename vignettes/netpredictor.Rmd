@@ -177,6 +177,11 @@ In this example we attempt to use the dataseed file which contains the pairs rel
 
 suppressPackageStartupMessages(require(igraph))
 suppressPackageStartupMessages(require(netpredictor))
+install.packages(
+    'printr',
+    type = 'source',
+    repos = c('http://yihui.name/xran', 'http://cran.rstudio.com')
+)
 library(printr)
 data(Enzyme)
 
