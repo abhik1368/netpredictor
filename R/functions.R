@@ -1,12 +1,3 @@
-Libs = c('Rgraphviz', 'rgl')
-for( Lib in Libs ) {
-    if( !require( Lib, character.only = T ) ) {
-        print(Lib)
-        source("http://bioconductor.org/biocLite.R")
-        biocLite( Lib, type='source', lib = .libPaths()[2] )
-        library( Lib, character.only = T )
-    }
-}
 ## Performing jaccard similarity between two entities
 jaccard.sim <- function(df){
     a <- df %*% t(df)
