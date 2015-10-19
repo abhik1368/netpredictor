@@ -44,7 +44,7 @@ _______
 
 ## 2. Installation
 
-A stable tested version of SAGA is available from the CRAN repository or the most recent version may be installed from github using the devtools package: 
+A stable tested version of from github using the devtools package: 
 
 Installing from github
 
