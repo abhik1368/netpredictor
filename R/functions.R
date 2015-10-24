@@ -167,9 +167,7 @@ get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }
-    g = Z$cgraph
-    num.nodes=3
-    
+
     ## decompose the graph 
     gps <- decompose.graph(g,min.vertices=num.nodes)
     # Create a list to store list of graphs for community identification
