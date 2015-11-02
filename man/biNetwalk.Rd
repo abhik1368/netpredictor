@@ -38,7 +38,7 @@ S2 = enzyme_Csim
 S1 = enzyme_Gsim
 g1 = graph.incidence(A)
 M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8,
-                parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+                parallel=FALSE, multicores=NULL, verbose=T,weight=FALSE)
 dataF<- read.csv("seedFile.csv",header=FALSE)
 Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
                  parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)

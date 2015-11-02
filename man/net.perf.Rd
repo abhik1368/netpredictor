@@ -4,8 +4,9 @@
 \alias{net.perf}
 \title{Link Prediction Performance}
 \usage{
-net.perf(A, S1, S2, relinks = 100, numT = 2, norm = "laplace",
-  Calgo = c("rwr", "nbi", "netcombo", "all"))
+net.perf(A, S1, S2, restart = 0.8, alpha = 0.5, lamda = 0.5,
+  relinks = 100, numT = 2, norm = "laplace", Calgo = c("rwr", "nbi",
+  "netcombo", "all"))
 }
 \arguments{
 \item{A}{Drug target association matrix}
@@ -13,6 +14,12 @@ net.perf(A, S1, S2, relinks = 100, numT = 2, norm = "laplace",
 \item{S1}{Sequence similarity matrix object}
 
 \item{S2}{Accepts a matrix object similarity scores for compounds.}
+
+\item{restart}{restart value if using rwr or netcombo}
+
+\item{alpha}{alpha value if using nbi or netcombo}
+
+\item{lamda}{lamda value if using nbi or netcombo}
 
 \item{relinks}{Number of links to remove randomly from the input matrix.}
 
@@ -41,7 +48,7 @@ data(Enzyme)
 A = enzyme_ADJ
 S1 = enzyme_Gsim
 S2= enzyme_Csim
-m = net.perf(A,S1,S2,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
+m = net.perf(A,S1,S2,alpha=0.5,lamda=0.5,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
 }
 }
 

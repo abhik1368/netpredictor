@@ -102,7 +102,7 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
 
 rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
     # run on sparse matrix package
-    
+    r =0.8
     flag_parallel <- F
     stop_delta <- 1e-07     
         if(par==TRUE){
@@ -163,7 +163,7 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
 #' @usage get.Communities(g,num.nodes = 3,calgo = walktrap.community)
 #' @export 
 
-get.Communities <- function(g,num.nodes = 3,calgo = walktrap.community){
+get.Communities <- function(g,num.nodes = 2,calgo = walktrap.community){
     if (class(g)!= "igraph"){
         stop("The function must apply to 'igraph' object.\n")
     }

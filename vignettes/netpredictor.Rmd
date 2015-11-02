@@ -124,7 +124,7 @@ data(Enzyme)
 A <- t(enzyme_ADJ)
 
 ## degree Centrality of the Bipartite Graph
-get.biDegreeCentrality(A,SM=FALSE)
+get.biDegreeCentrality(A,SM=TRUE)
 
 ## Compute Graph density of Bipartite Graph
 get.biDensity(A)
@@ -163,7 +163,7 @@ g1 = graph.incidence(A)
 
 ## Run the RWR in bipartite network.
 pScore <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,
-                restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+                restart=0.8, parallel=FALSE, multicores=NULL, verbose=T)
 
 dim(pScore)
 ```
@@ -185,7 +185,7 @@ S2 = enzyme_Gsim
 dataF<- read.csv("seedFile.csv",header=FALSE)
 knitr::kable(dataF)
 Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed =dataF,
-                 restart=0.8,parallel=TRUE, multicores=NULL, verbose=T)
+                 restart=0.8,parallel=FALSE, multicores=NULL, verbose=T)
 ```
 
 In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. For community detection we used the walktrap algorithm [13], which places nodes into communities based on neighborhood similarity from short random walks.  We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format (Gephi specific file format) . Below shows the example of exporting to GML format.
@@ -200,7 +200,7 @@ S1 = enzyme_Gsim
 S2 = enzyme_Csim
 g1 = graph.incidence(A)
 Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace",dataSeed=NULL,restart=0.8,
-              parallel=TRUE,multicores=NULL, verbose=T)
+              parallel=FALSE,multicores=NULL, verbose=T)
 
 ## Get the top results of RWR prediction. This function returns the associations     
 ## of drugs and target names with scores and type interaction whether
@@ -253,7 +253,7 @@ S1 = enzyme_Gsim
 S2= enzyme_Csim
 
 ## We want to remove the links from the links which has two or more interactions.
-m = net.perf(A,S1,S2,relinks = 50,numT=2,Calgo="nbi")
+m = net.perf(A,S1,S2,alpha=0.5,lamda=0.5,relinks = 50,numT=2,Calgo="nbi")
 m
 
 ```
@@ -335,7 +335,7 @@ perm = list()
 set.seed(12345)
 
 ## Compute scores for 1000 permutations where you sample the matrix everytime
-for ( i in 1:1000){
+for ( i in 1:10){
     A <- t(enzyme_ADJ)
     A <- A[sample(nrow(A)),sample(ncol(A))]
     S1 = as.matrix(enzyme_Csim) 
@@ -345,7 +345,11 @@ for ( i in 1:1000){
     R1 <- nbiNet(A,alpha=0.5, lamda=0.5,  s1=S1, s2=S2,format = "matrix")
     perm[[i]] <- R1
 }
-
+extractUC <- function(x.1,x.2,...){
+    x.1p <- do.call("paste", x.1)
+    x.2p <- do.call("paste", x.2)
+    x.1[! x.1p %in% x.2p, ]
+}
 ## Get the mean and standard deviation of the matrix
 
 mean_mat <- apply(simplify2array(perm), 1:2, mean)
@@ -353,7 +357,7 @@ sd_mat  <-  apply(simplify2array(perm), 1:2, sd)
 
 ## Comput the Z-score of matrix
 Z <- (P1 - mean_mat)/sd_mat
-
+Z[is.nan(Z)] = 0
 ## Compute the significance score
 sigNetwork <- 2*(pnorm(-abs(Z)))
 

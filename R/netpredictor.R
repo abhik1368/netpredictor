@@ -371,7 +371,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' S1 = enzyme_Gsim
 #' g1 = graph.incidence(A)
 #' M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8, 
-#'                 parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+#'                 parallel=FALSE, multicores=NULL, verbose=T,weight=FALSE)
 #' dataF<- read.csv("seedFile.csv",header=FALSE)
 #' Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
 #'                  parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
@@ -405,7 +405,6 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
         c <- restart
     }
     normalise <- match.arg(normalise)
-    
     if (weight){
     if ("weight" %in% list.edge.attributes(g1)){
         adjM <- get.incidence(g1, attr="weight", names=T)
@@ -741,6 +740,9 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' @param S2 Accepts a matrix object similarity scores for compounds.
 #' @param relinks Number of links to remove randomly from the input matrix.
 #' @param numT Frequency of the number of targets.
+#' @param restart restart value if using rwr or netcombo
+#' @param alpha alpha value if using nbi or netcombo
+#' @param lamda lamda value if using nbi or netcombo
 #' @param Calgo Algorithm to use for Bipartite link prediction options are "rwr","nbi" & "netcombo". 
 #' @param norm normalization of matrices options are "laplace" or "none".   
 #' @name net.perf
@@ -755,11 +757,11 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
 #' A = enzyme_ADJ 
 #' S1 = enzyme_Gsim 
 #' S2= enzyme_Csim
-#' m = net.perf(A,S1,S2,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
+#' m = net.perf(A,S1,S2,alpha=0.5,lamda=0.5,relinks = 50,numT=2,norm="laplace",Calgo="nbi")
 #' }
 #' @export
 
-net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","nbi","netcombo","all")){
+net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","nbi","netcombo","all")){
     
     auctop = numeric()
     aucc = numeric()
@@ -856,8 +858,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","n
     if (algo == "rwr"){
         #par="True"
         message(sprintf("Running RWR Algorithm"))
-        mat = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T,multicores=4)
-        #mat <-biNetwalk((mat,N_M,par=TRUE,r=0.7)
+        mat = biNetwalk(g1,s1=S1,s2=S2,restart=restart,normalise=norm,parallel=FALSE,verbose=T,multicores=4)
         predictR <- mat[,colnames(mat) %in% drugs]
         scores <- performances(predictR,m,re)
         return (scores)
@@ -866,7 +867,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","n
         message(sprintf("Running NBI Algorithm"))
         #S1 = S1[rownames(S1) %in% rownames(N_M),colnames(S1) %in% rownames(N_M)]
         #S2 = S2[rownames(S2) %in% colnames(N_M),colnames(S2) %in% colnames(N_M)]   
-        mat <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
+        mat <- nbiNet(Sg_t, lamda=lamda, alpha=alpha, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         predictR <- mat[,colnames(mat) %in% drugs]
         scores <- performances(predictR,m,re)
         return (scores)
@@ -875,8 +876,8 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","n
     else if(algo == "netcombo"){
         message(sprintf("Running NetCombo Algorithm"))
         #par="True"
-        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T)
-        mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
+        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=FALSE,verbose=T,restart=restart)
+        mat2 <- nbiNet(Sg_t,lamda=lamda, alpha=alpha, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat = (mat1+mat2)/2
         predictR <- mat[,colnames(mat) %in% drugs]
         scores <- performances(predictR,m,re)
@@ -885,7 +886,7 @@ net.perf<- function(A,S1,S2,relinks=100,numT=2,norm="laplace",Calgo = c("rwr","n
         
         message(sprintf("Running all the algorithms ..."))
         #par="True"
-        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=TRUE,verbose=T)
+        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=FALSE,verbose=T)
         mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat3 <- (mat1+mat2)/2
         predictR1 <- mat1[,colnames(mat1) %in% drugs]
