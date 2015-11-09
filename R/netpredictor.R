@@ -841,7 +841,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
             d <- res[order(-res[,1]),]
             ac <- auac(d[,1], d[,2])
             au <- auc(d[,1], d[,2])
-            at <-  auac(d[,1], d[,2],top=0.1)
+            at <-  auc(d[,1], d[,2],top=0.1)
             bd <- bedroc(d[,1], d[,2])
             ef <- enrichment_factor(d[,1], d[,2],top=0.1)
             aucc <- c(aucc, ac)
