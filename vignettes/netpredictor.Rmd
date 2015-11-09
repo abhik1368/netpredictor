@@ -124,7 +124,7 @@ data(Enzyme)
 A <- t(enzyme_ADJ)
 
 ## degree Centrality of the Bipartite Graph
-get.biDegreeCentrality(A,SM=TRUE)
+get.biDegreeCentrality(A,SM=FALSE)
 
 ## Compute Graph density of Bipartite Graph
 get.biDensity(A)
