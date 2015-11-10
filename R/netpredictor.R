@@ -851,7 +851,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
             
         }
         
-        scores = c(list(aucc = mean(auac),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
+        scores = c(list(auac = mean(aucc),auc= mean(au),auctop = mean(auctop),bdr = mean(bdr),efc = mean(efc)))
         return (scores)
     }
     
