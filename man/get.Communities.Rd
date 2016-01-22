@@ -4,7 +4,7 @@
 \alias{get.Communities}
 \title{Get communities from a graph}
 \usage{
-get.Communities(g,num.nodes = 3,calgo = walktrap.community)
+get.Communities(g,num.nodes = 2,calgo = walktrap.community)
 }
 \arguments{
 \item{g}{igraph object}

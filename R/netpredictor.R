@@ -580,7 +580,7 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     obs <- as.matrix(t(PTmatrix) %*% PTmatrix)
     B <- num.permutation
     if(verbose){
-        message(sprintf("Third, generate the distribution of contact strength based on %d permutations on nodes respecting %s (%s)...", B, permutation, as.character(Sys.time())), appendLF=T)
+        message(sprintf("Third, generate the distribution of association scores based on %d permutations on nodes respecting %s (%s)...", B, permutation, as.character(Sys.time())), appendLF=T)
     }
     
     
@@ -656,7 +656,7 @@ sig.net <- function(data, g, Amatrix, num.permutation=10, adjp.cutoff=0.05, p.ad
     adjpval[flag_upper] <- stats::p.adjust(pval[flag_upper], method=p.adjust.method)
     
     if(verbose){
-        message(sprintf("Also, construct the contact graph under the cutoff %1.1e of adjusted-pvalue (%s)...", adjp.cutoff, as.character(Sys.time())), appendLF=T)
+        message(sprintf("Also, construct the association graph under the cutoff %1.1e of adjusted-pvalue (%s)...", adjp.cutoff, as.character(Sys.time())), appendLF=T)
     }
     flag <- adjpval < adjp.cutoff
     adjmatrix <- flag

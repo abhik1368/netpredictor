@@ -294,8 +294,7 @@ P2 <- nbiNet(A,alpha=0.5,lamda=0.5,format="matrix")
 
 ```
 
-We also give users to compute performance metrics using different algorithms to get AUCC, AUC, auctop,bdr and efc so that one can 
-compare the performance using different algorithms.
+We also give users to compute performance metrics using different algorithms to get AUCC, AUC, auctop,bdr and efc so that one can compare the performance using different algorithms.
 
 
 ```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}

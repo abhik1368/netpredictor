@@ -160,7 +160,7 @@ rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
 #' @param g igraph object
 #' @param num.nodes Number of nodes to keep in the community.
 #' @param calgo The community algorithm to use to find the communities.
-#' @usage get.Communities(g,num.nodes = 3,calgo = walktrap.community)
+#' @usage get.Communities(g,num.nodes = 2,calgo = walktrap.community)
 #' @export 
 
 get.Communities <- function(g,num.nodes = 2,calgo = walktrap.community){
