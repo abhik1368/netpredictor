@@ -140,7 +140,7 @@ get.biWeightedProjection(A,weight = TRUE)
 
 Next we will use the different methods to predict links. Here we have shown examples based on drug target prediction. With the growing understanding of complex diseases, the focus of drug discovery has shifted away from "one target, one drug" model, to a new "multi-target, multi-drug" model. Predicting potential drug-target interactions from heterogeneous biological data is critical not only for better understanding of the various interactions and biological processes, but also for the development of novel drugs and the improvement of human medicines. To predict polypharmacology people use bayesian methods, SVM and Random Forest models, but in all of those algorithms the methods depends on labelled data to predict unknown links. Network based approaches does not rely on labelled data . Two of the algorihtms implemented in this package Random walk based Restart(RWR) and Network based Inference(NBI) to do it. For performing RWR we used Drug target network which is a bipartite graph in which every links connects drugs to proteins. 
 
-```{r, eval= TRUE,results='asis' ,messages=FALSE}
+```{r, eval= TRUE,results='hide' ,messages=FALSE}
 suppressPackageStartupMessages(require(igraph))
 suppressPackageStartupMessages(require(netpredictor))
 
@@ -171,7 +171,7 @@ dim(pScore)
 In this example we attempt to use the dataseed file which contains the pairs relations between targets and drugs. This can be useful when one is trying to investigate relations for a specific set of relations . The Drug names and proteins names should be included in the adjacency matrix when one uses the file option to provide dataseed. In the dataseed file the first column contains the proteins names and the second column the drug names. Ouput is a matrix of unique drugs against the number of targets in the adjacency matrix. 
 
 
-```{r, eval= TRUE,results='asis' ,messages=TRUE}
+```{r, eval= TRUE,results='hide' ,messages=FALSE}
 
 suppressPackageStartupMessages(require(igraph))
 library(netpredictor)
@@ -190,7 +190,7 @@ Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed =dataF,
 
 In this next example we will see how we can plot the significant communities of drugs from the final RWR computed matrix. For community detection we used the walktrap algorithm [13], which places nodes into communities based on neighborhood similarity from short random walks.  We also input a list of drugs as vector and retrieve top 10 interactions for each of those drugs. In this package after getting the results one can easily write the results in GML format for visualization in Gephi or cytoscape. It also support export to GEXF format (Gephi specific file format) . Below shows the example of exporting to GML format.
 
-```{r, eval= TRUE,results='asis' ,messages=TRUE,warning=FALSE}
+```{r, eval= TRUE,results='hide' ,messages=FALSE,warning=FALSE}
 
 suppressPackageStartupMessages(require(igraph))
 suppressPackageStartupMessages(require(netpredictor))
