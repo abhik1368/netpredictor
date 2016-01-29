@@ -355,8 +355,6 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' @param normalise Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
 #' @param dataSeed seeds file
 #' @param restart restart value
-#' @param parallel parallel performance either True or False . Parallelization is implemented using foreach.
-#' @param multicores using multicores
 #' @param weight if we want to use a weighted network . Options are either TRUE or FALSE.
 #' @references 
 #' \itemize{
@@ -378,7 +376,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' }
 #' @export
 
-biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE) {
+biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,restart=0.8,verbose=T,weight=FALSE) {
     
     startT <- Sys.time()
 
@@ -453,7 +451,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
     }
     
     if (exists("W")){
-        rmat <- rwr(W,P0matrix,par=parallel,r=c,multicores=multicores)
+        rmat <- rwr(W,P0matrix,r=c)
     } else{
         stop("Transition matrix couldnt be generated..")
     }
@@ -506,7 +504,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,rest
 #' S1 = enzyme_Gsim
 #' S2 = enzyme_Csim
 #' g1 = graph.incidence(A)
-#' Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+#' Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8,verbose=T)
 #' Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE,verbose=T)
 #' } 
 #' @export
@@ -719,7 +717,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
     A <- as.matrix(get.incidence(g1))
     message(sprintf("Running computation of the input graph (%s) ...", as.character(startT)), appendLF=T) 
     message(sprintf("Running computation for RWR..\n"))
-    Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",parallel=par,verbose=T,restart = restart)
+    Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",verbose=T,restart = restart)
     
 
     message(sprintf("Running computation for network based inference..\n"))
@@ -858,7 +856,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
     if (algo == "rwr"){
         #par="True"
         message(sprintf("Running RWR Algorithm"))
-        mat = biNetwalk(g1,s1=S1,s2=S2,restart=restart,normalise=norm,parallel=FALSE,verbose=T,multicores=4)
+        mat = biNetwalk(g1,s1=S1,s2=S2,restart=restart,normalise=norm,verbose=T)
         predictR <- mat[,colnames(mat) %in% drugs]
         scores <- performances(predictR,m,re)
         return (scores)
@@ -876,7 +874,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
     else if(algo == "netcombo"){
         message(sprintf("Running NetCombo Algorithm"))
         #par="True"
-        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=FALSE,verbose=T,restart=restart)
+        mat1 = biNetwalk(g1,s1=S1,s2=S2,normalise=norm,verbose=T,restart=restart)
         mat2 <- nbiNet(Sg_t,lamda=lamda, alpha=alpha, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat = (mat1+mat2)/2
         predictR <- mat[,colnames(mat) %in% drugs]
@@ -886,7 +884,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
         
         message(sprintf("Running all the algorithms ..."))
         #par="True"
-        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise=norm,parallel=FALSE,verbose=T)
+        mat1 <- biNetwalk(g1,s1=S1,s2=S2,normalise=norm,verbose=T)
         mat2 <- nbiNet(Sg_t, lamda=0.5, alpha=0.5, s1=as.matrix(S1), s2=as.matrix(S2),format = "matrix")
         mat3 <- (mat1+mat2)/2
         predictR1 <- mat1[,colnames(mat1) %in% drugs]

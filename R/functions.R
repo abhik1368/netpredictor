@@ -1,9 +1,13 @@
 ## Performing jaccard similarity between two entities
+## Performing jaccard similarity between two entities
+## Using parallel to make cluster
+
 jaccard.sim <- function(df){
-    a <- df %*% t(df)
-    b <- df %*% (1 - t(df))
-    c <- (1 - df) %*% t(df)
-    
+    cl <- makeCluster(detectCores())
+    a <- suppressWarnings(snow::parMM(cl,df,t(df)))
+    b <- suppressWarnings(snow::parMM(cl,df,(1-t(df))))
+    c <- suppressWarnings(snow::parMM(cl,(1-df),t(df)))
+
     sim <- a/(a + b + c)
     
     # changing diagonals to 1 and removing NaN's and NA
@@ -11,15 +15,18 @@ jaccard.sim <- function(df){
     s = as.matrix(sim)
     s[is.nan(s)] <- 0
     return (s)
+    stopCluster(cl)
 }
 
 ## Normalizing the matrix based on matrix columns
 
 colNorm <- function(PTmatrix){
+    
     if (ncol(PTmatrix) > 1){
         col_sum <- apply(PTmatrix, 2, sum)
         col_sum_matrix <- matrix(rep(col_sum, nrow(PTmatrix)), ncol=ncol(PTmatrix), nrow=nrow(PTmatrix), byrow =T)
-        res <- as.matrix(PTmatrix)/col_sum_matrix
+        res <- PTmatrix/col_sum_matrix
+        res <- as.matrix(res)
         res[is.na(res)] <- 0
         return(res)
     }else {
@@ -38,32 +45,44 @@ colNorm <- function(PTmatrix){
 
 tMat <- function(g1,s1,s2,normalise="laplace"){
     
+    cl <- makeCluster(detectCores())
     
     g1 <- t(g1)
-    seq<-as.matrix(s1)          ## sequence similairty matrix normalised between 0 and 1 
+    seq<- as.matrix(s1)          ## sequence similairty matrix normalised between 0 and 1 
     drugProt <- as.matrix(g1)           ## drug target matrix   
-    csim<-as.matrix(s2)         ## drug similarity matrix normalised between 0 and 1
-    new.drug_drug<- drugProt %*% t(drugProt)    
+    csim <- as.matrix(s2)         ## drug similarity matrix normalised between 0 and 1
     
-    new.prot_prot<- t(drugProt) %*% drugProt
+    new.drug_drug <- suppressWarnings(snow::parMM(cl,drugProt,t(drugProt)))
+    
+    new.prot_prot <- suppressWarnings(snow::parMM(cl,t(drugProt),drugProt))
 
     #calculate drug-drug similarity based on shared proteins based on jaccard similarity            
     norm_drug <- jaccard.sim(drugProt)
-
+    
     # Jaccard similarity of two proteins based on shared compounds
     norm_prot <- jaccard.sim(t(drugProt))
-      
+    
     # Normalizing the matrices with equal weights
-    drug.similarity.final<- as.matrix(0.5*(csim)+0.5*(norm_drug))
-    prot.similarity.final<- as.matrix(0.5*(seq)+0.5*(norm_prot))
+    drug.similarity.final <- 0.5*(csim)+0.5*(norm_drug)
+    prot.similarity.final <- 0.5*(seq)+0.5*(norm_prot)
+    
     if(normalise == "laplace"){
+        
         D1  <- diag(x=(rowSums(drugProt))^(-0.5))
         D2  <- diag(x=(colSums(drugProt))^(-0.5))   
-        MTD <- D1 %*% g1 %*% D2
+        
+        MTD1 <- suppressWarnings(snow::parMM(cl,D1,g1))
+        MTD <- suppressWarnings(snow::parMM(cl,MTD1,D2))
+        
         D3  <- diag(x=(rowSums(prot.similarity.final))^(-0.5))
-        MTT <- D3 %*% seq %*% D3
+        
+        MTT1 <- suppressWarnings(snow::parMM(cl,D3,seq))
+        MTT  <- suppressWarnings(snow::parMM(cl,MTT1,D3))
+        
         D4  <- diag(x=(rowSums(drug.similarity.final))^(-0.5))
-        MDD  <- D4 %*% csim %*% D4 
+        MDD1  <- suppressWarnings(snow::parMM(cl,D4,csim))
+        MDD  <- suppressWarnings(snow::parMM(cl,MDD1,D4))
+        
         M1<-cbind(MTT,t(MTD))
         M2<-cbind(MTD,MDD)
         M <- rbind(M1,M2)
@@ -73,7 +92,7 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
         rownames(M) <- n
         colnames(M) <- n
         # Returning the final matrix 
-        return(M)
+        return(as.matrix(M))
     }
     
     
@@ -90,9 +109,11 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
         rownames(M) <- n
         colnames(M) <- n
         M <- colNorm(M)
+        
         # Returning the final matrix 
-        return(M)
+        return(as.matrix(M))
     }
+    stopCluster(cl)
 }
 
 ## performing random walk with restart both in parallel and non-parallel way.
@@ -100,56 +121,33 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
 ## and the number of cores to run parallelisation on. Also a restart parameter is available as r 
 ## to get better results with different datasets one needs to tune restart parameter r.
 
-rwr <- function(W,P0matrix,par=FALSE,r=0.7,multicores=multicores){
+rwr <- function(W,P0matrix,r=0.9){
     # run on sparse matrix package
-    r =0.8
-    flag_parallel <- F
+    #flag_parallel <- F
+    cl <- makeCluster(detectCores())
     stop_delta <- 1e-07     
-        if(par==TRUE){
-            flag_parallel <- dCheckParallel(multicores=multicores, verbose=T)
-            message(paste(c("Executing parallel:")))
-            
-            PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
-            if(flag_parallel){
-                pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
-                PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine="cbind"), {
-                    P0 <- P0matrix[,j]
-                    ## Initializing variables
-                    delta <- 1
-                    PT <- P0
-                    setTxtProgressBar(pb, j) 
-                    ## Iterative update till convergence (delta<=1e-10)
-                    while (delta>stop_delta){
-                        PX <- (1-r) * t(W) %*% PT + r * P0
-                        # p-norm of v: sum((abs(v).p)^(1/p))
-                        delta <- sum(abs(PX-PT))
-                        PT <- PX
-                    }
-                    as.matrix(PT)
-                })
-                
+        
+        message(paste(c("Executing RWR in parallel way .. \n")))
+        PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
+        delta <- 1
+        pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
+        for(j in 1:ncol(P0matrix)){
+            P0 <- P0matrix[,j]
+            PT <- P0
+            setTxtProgressBar(pb, j)
+            while (delta > stop_delta){
+                Tr <- suppressWarnings(snow::parMM(cl,t(W),PT))
+                PX <- (1-r) * Tr + r * P0
+                # p-norm of v: sum((abs(v).p)^(1/p))
+                delta <- sum(abs(PX-PT))
+                #print (delta)
+                PT <- PX
             }
-           return(PTmatrix)
-        } else if(flag_parallel==F){
-            message(paste(c("Executing in non parallel way .. \n")))
-            PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
-            delta <- 1
-            pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
-            for(j in 1:ncol(P0matrix)){
-                P0 <- P0matrix[,j]
-                PT <- P0
-                setTxtProgressBar(pb, j)
-                while (delta > stop_delta){
-                    PX <- (1-r) * t(W) %*% PT + r * P0
-                    # p-norm of v: sum((abs(v).p)^(1/p))
-                    delta <- sum(abs(PX-PT))
-                    #print (delta)
-                    PT <- PX
-                }
-                PTmatrix[,j] <- matrix(PT)
-            }
-            return(PTmatrix)
+            PTmatrix[,j] <- matrix(PT)
         }
+        return(PTmatrix)
+        stopCluster(cl)
+
 }
 
 #' Get the communities in a graph

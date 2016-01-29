@@ -5,8 +5,7 @@
 \title{Bipartite Random Walk}
 \usage{
 biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
-  restart = 0.8, parallel = TRUE, multicores = NULL, verbose = T,
-  weight = FALSE)
+  restart = 0.8, verbose = T, weight = FALSE)
 }
 \arguments{
 \item{g1}{Bipartite graph igraph object.}
@@ -20,10 +19,6 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
 \item{dataSeed}{seeds file}
 
 \item{restart}{restart value}
-
-\item{parallel}{parallel performance either True or False . Parallelization is implemented using foreach.}
-
-\item{multicores}{using multicores}
 
 \item{weight}{if we want to use a weighted network . Options are either TRUE or FALSE.}
 }

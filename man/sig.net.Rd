@@ -37,7 +37,7 @@ A <- enzyme_ADJ
 S1 = enzyme_Gsim
 S2 = enzyme_Csim
 g1 = graph.incidence(A)
-Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8, parallel=TRUE, multicores=NULL, verbose=T)
+Q = biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL, file=NULL,restart=0.8,verbose=T)
 Z = sig.net(data=A,g=g1,Amatrix=Q,num.permutation=100,adjp.cutoff=0.01,p.adjust.method="BH",parallel=FALSE,verbose=T)
 }
 }
