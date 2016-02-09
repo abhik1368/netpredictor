@@ -352,7 +352,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' @param g1 Bipartite graph igraph object.
 #' @param s1 Accepts a matrix object of similarity scores for targets.
 #' @param s2 Accepts a matrix object similarity scores for compounds.
-#' @param normalise Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)
+#' @param normalise Normalisation of matrix using laplacian, Chen, None(the transition matrix will be column normalized)
 #' @param dataSeed seeds file
 #' @param restart restart value
 #' @param weight if we want to use a weighted network . Options are either TRUE or FALSE.
