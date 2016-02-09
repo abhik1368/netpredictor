@@ -43,7 +43,7 @@ colNorm <- function(PTmatrix){
 ## protein targets and columns as Drugs.
 ## @export
 
-tMat <- function(g1,s1,s2,normalise="laplace"){
+tMat <- function(g1,s1,s2,normalise="chen"){
     
     cl <- makeCluster(detectCores())
     
@@ -65,6 +65,8 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
     # Normalizing the matrices with equal weights
     drug.similarity.final <- 0.5*(csim)+0.5*(norm_drug)
     prot.similarity.final <- 0.5*(seq)+0.5*(norm_prot)
+    
+
     
     if(normalise == "laplace"){
         
@@ -93,8 +95,92 @@ tMat <- function(g1,s1,s2,normalise="laplace"){
         colnames(M) <- n
         # Returning the final matrix 
         return(as.matrix(M))
+    }    
+    if(normalise == "chen"){
+        
+        ADT<-colSums(drugProt)
+        ATD<-rowSums(drugProt)
+        Sd<-rowSums(drug.similarity.final)
+        St<-rowSums(prot.similarity.final)
+        MDT<-mat.or.vec(nrow(drugProt),nrow(seq))
+        MTD<-mat.or.vec(nrow(seq),nrow(drugProt))
+        print (dim(MDT))
+        print (dim(MTD))
+        
+        A<-t(drugProt)
+        
+        D1  <- diag(x=(rowSums(drugProt))^(-0.5))
+        D2  <- diag(x=(colSums(drugProt))^(-0.5))   
+        
+        #MTD1 <- suppressWarnings(snow::parMM(cl,D1,g1))
+        ##MTD <- suppressWarnings(snow::parMM(cl,MTD1,D2))
+        #MDT <- t(MTD)
+        D3  <- diag(x=(rowSums(prot.similarity.final))^(-0.5))
+        
+        MTT1 <- suppressWarnings(snow::parMM(cl,D3,seq))
+        MTT  <- suppressWarnings(snow::parMM(cl,MTT1,D3))
+        
+        D4  <- diag(x=(rowSums(drug.similarity.final))^(-0.5))
+        MDD1  <- suppressWarnings(snow::parMM(cl,D4,csim))
+        MDD  <- suppressWarnings(snow::parMM(cl,MDD1,D4))
+        
+        for (i in 1:nrow(seq)){
+            for (j in 1:nrow(seq)){
+                if (ATD[i]==0){
+                    
+                    MTT[i,j]<-prot.similarity.final[i,j]/St[i]
+                }
+                else{
+                    MTT[i,j]<-(0.8*(prot.similarity.final[i,j])/St[i])
+                }
+            }
+        }
+        
+        for (i in 1:ncol(drugProt)){
+            for (j in 1:ncol(drugProt)){
+                if (ADT[i]==0){
+                    MDD[i,j]<-drug.similarity.final[i,j]/Sd[i]
+                }
+                else{
+                    MDD[i,j]<-(0.8*(drug.similarity.final[i,j])/Sd[i])
+                }
+            }
+        }
+        
+        for (i in 1:ncol(drugProt)){
+            for (j in 1:nrow(seq)){
+                if (ADT[i]!=0){
+                    MDT[i,j]<- (0.2*A[i,j])/ADT[i]
+                }
+                else{
+                    MDT[i,j]<-0
+                }
+            }
+        }
+        for (i in 1:nrow(seq)){
+            for (j in 1:ncol(drugProt)){
+                if (ATD[i]!=0){
+                    MTD[i,j]<- (0.2*A[j,i])/ATD[i]
+                }
+                else{
+                    MTD[i,j]<-0
+                }
+            }
+        }
+        
+        M1<-cbind(MTT,MTD)
+        M2<-cbind(MDT,MDD)
+        M <- rbind(M1,M2)
+        M <- as.matrix(M)
+        M[is.na(M)]<-0
+        n =c(colnames(g1),rownames(g1))
+        rownames(M) <- n
+        colnames(M) <- n
+        # Returning the final matrix 
+        return(as.matrix(M))
+        
     }
-    
+
     
     if(normalise == "none"){
         MDD <- drug.similarity.final
@@ -125,26 +211,43 @@ rwr <- function(W,P0matrix,r=0.9){
     # run on sparse matrix package
     #flag_parallel <- F
     cl <- makeCluster(detectCores())
+    registerDoParallel(cl)
     stop_delta <- 1e-07     
         
         message(paste(c("Executing RWR in parallel way .. \n")))
         PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
-        delta <- 1
         pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
-        for(j in 1:ncol(P0matrix)){
-            P0 <- P0matrix[,j]
-            PT <- P0
+        j = 1
+        PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine='cbind'), {
             setTxtProgressBar(pb, j)
-            while (delta > stop_delta){
-                Tr <- suppressWarnings(snow::parMM(cl,t(W),PT))
-                PX <- (1-r) * Tr + r * P0
-                # p-norm of v: sum((abs(v).p)^(1/p))
+            P0 <- P0matrix[,j]
+            ## Initializing variables
+            delta <- 1
+            PT <- P0
+            ## Iterative update till convergence (delta<=1e-7)
+            while (delta>stop_delta){
+                PX <- (1-r) * t(W) %*% PT + r * P0
                 delta <- sum(abs(PX-PT))
-                #print (delta)
                 PT <- PX
             }
-            PTmatrix[,j] <- matrix(PT)
-        }
+            as.matrix(PT)
+        })
+        
+#         pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
+#         for(j in 1:ncol(P0matrix)){
+#             P0 <- P0matrix[,j]
+#             PT <- P0
+#             delta <- 1
+#             setTxtProgressBar(pb, j)
+#             while (delta > stop_delta){
+#                 Tr <- suppressWarnings(snow::parMM(cl,t(W),PT))
+#                 PX <- (1-r) * Tr + r * P0
+#                 # p-norm of v: sum((abs(v).p)^(1/p))
+#                 delta <- sum(abs(PX-PT))
+#                 PT <- PX
+#             }
+#             PTmatrix[,j] <- matrix(PT)
+#         }
         return(PTmatrix)
         stopCluster(cl)
 
@@ -648,7 +751,6 @@ get.biWeightedProjection <- function(A,vertex=FALSE,mode='shared-neighbours'){
             }
             return(proj)
         }
-        ## generic, just take provided matrix as weight
     }
 }
 

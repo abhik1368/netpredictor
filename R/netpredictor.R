@@ -376,7 +376,7 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' }
 #' @export
 
-biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none"), dataSeed=NULL,restart=0.8,verbose=T,weight=FALSE) {
+biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NULL,restart=0.8,verbose=T,weight=FALSE) {
     
     startT <- Sys.time()
 

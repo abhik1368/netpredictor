@@ -4,8 +4,8 @@
 \alias{biNetwalk}
 \title{Bipartite Random Walk}
 \usage{
-biNetwalk(g1, s1, s2, normalise = c("laplace", "none"), dataSeed = NULL,
-  restart = 0.8, verbose = T, weight = FALSE)
+biNetwalk(g1, s1, s2, normalise = c("laplace", "none", "chen"),
+  dataSeed = NULL, restart = 0.8, verbose = T, weight = FALSE)
 }
 \arguments{
 \item{g1}{Bipartite graph igraph object.}
