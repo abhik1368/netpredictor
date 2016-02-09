@@ -36,13 +36,13 @@
 #' }
 
 uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSeed=NULL, restart=0.8, parallel=TRUE, multicores=NULL, verbose=T) 
-    {
-
+{
+    
     startT <- Sys.time()
     stop_delta <- 1e-7   
     if (class(ig) != "igraph"){
         stop("The function must apply to either 'igraph' or 'matrix' object.\n")
-    
+        
     }
     
     if(verbose){
@@ -57,7 +57,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
         c <- restart
     }
     normalise <- match.arg(normalise)
-
+    
     if ("weight" %in% list.edge.attributes(ig)){
         adjM <- get.adjacency(ig, type="both", attr="weight", edges=F, names=T, sparse=getIgraphOpt("sparsematrices"))
         if(verbose){
@@ -74,7 +74,7 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
         now <- Sys.time()
         message(sprintf("Normalising the adjacency matrix using %s normalisation (%s) ...", normalise, as.character(now)), appendLF=T)
     }
-  
+    
     A <- adjM!=0
     if(normalise == "row"){
         D <- Matrix::Diagonal(x=(Matrix::rowSums(A))^(-1))
@@ -130,90 +130,90 @@ uNetwalk <- function(ig, normalise=c("row","column","laplacian","none"), dataSee
             ind <- match(rownames(data), V(ig)$name)
             nodes_mapped <- V(ig)$name[ind[!is.na(ind)]]
             if(length(nodes_mapped)==0){
-               stop("The row names of input dataSeed do not contain all those in the input graph.\n")
+                stop("The row names of input dataSeed do not contain all those in the input graph.\n")
             }
             P0matrix <- matrix(0,nrow=nrow(nadjM),ncol=ncol(data))
             P0matrix[ind[!is.na(ind)],] <- as.matrix(data[!is.na(ind),])
-        
+            
             ## make sure the sum of elements in each steady probability vector is one
             P0matrix <- colNorm(P0matrix)
-        
+            
             ## Assign row and colnames 
             rownames(P0matrix) <- V(ig)$name
             colnames(P0matrix) <- cnames
         } 
     }    
-        if(restart==1){
-            ## just seeds themselves
-            PTmatrix <- P0matrix
-        }else{
-            ###### Run in parallel
-            flag_parallel <- F
-            if(parallel==TRUE){
-                
-                flag_parallel <- dCheckParallel(multicores=multicores, verbose=verbose)
-                if(flag_parallel){
-                    j <- 1
-                    PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine="cbind"), {
-                        P0 <- P0matrix[,j]
-                        ## Initializing variables
-                        delta <- 1
-                        PT <- P0
-                        ## Iterative update till convergence (delta<=1e-10)
-                        while (delta>stop_delta){
-                            PX <- (1-c) * nadjM %*% PT + c * P0
-                            # p-norm of v: sum((abs(v).p)^(1/p))
-                            delta <- sum(abs(PX-PT))
-                            PT <- PX
-                        }
-                        as.matrix(PT)
-                    })
-                    
-                    PTmatrix[PTmatrix<1e-6] <- 0
-                    #PTmatrix <- Matrix::Matrix(PTmatrix, sparse=T)
-                }
-            }
-            if(flag_parallel==F){
-                PTmatrix <- Matrix::Matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix), sparse=T)
-                for(j in 1:ncol(P0matrix)){
-                    #P0 <- as.matrix(P0matrix[,j],ncol=1)
+    if(restart==1){
+        ## just seeds themselves
+        PTmatrix <- P0matrix
+    }else{
+        ###### Run in parallel
+        flag_parallel <- F
+        if(parallel==TRUE){
+            
+            flag_parallel <- dCheckParallel(multicores=multicores, verbose=verbose)
+            if(flag_parallel){
+                j <- 1
+                PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine="cbind"), {
                     P0 <- P0matrix[,j]
-                    
                     ## Initializing variables
                     delta <- 1
-                    
                     PT <- P0
                     ## Iterative update till convergence (delta<=1e-10)
                     while (delta>stop_delta){
                         PX <- (1-c) * nadjM %*% PT + c * P0
-                        
                         # p-norm of v: sum((abs(v).p)^(1/p))
                         delta <- sum(abs(PX-PT))
-                        
                         PT <- PX
-                        #step <- step+1
                     }
-                    #PTmatrix[,j] <- as.matrix(PT, ncol=1)
-                    PT[PT<1e-6] <- 0
-                    PTmatrix[,j] <- Matrix::Matrix(PT, sparse=T)
-                }
+                    as.matrix(PT)
+                })
+                
+                PTmatrix[PTmatrix<1e-6] <- 0
+                #PTmatrix <- Matrix::Matrix(PTmatrix, sparse=T)
             }
         }
-        if(verbose){
-            now <- Sys.time()
-            message(sprintf("Rescaling steady probability vector (%s) ...", as.character(now)), appendLF=T)
+        if(flag_parallel==F){
+            PTmatrix <- Matrix::Matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix), sparse=T)
+            for(j in 1:ncol(P0matrix)){
+                #P0 <- as.matrix(P0matrix[,j],ncol=1)
+                P0 <- P0matrix[,j]
+                
+                ## Initializing variables
+                delta <- 1
+                
+                PT <- P0
+                ## Iterative update till convergence (delta<=1e-10)
+                while (delta>stop_delta){
+                    PX <- (1-c) * nadjM %*% PT + c * P0
+                    
+                    # p-norm of v: sum((abs(v).p)^(1/p))
+                    delta <- sum(abs(PX-PT))
+                    
+                    PT <- PX
+                    #step <- step+1
+                }
+                #PTmatrix[,j] <- as.matrix(PT, ncol=1)
+                PT[PT<1e-6] <- 0
+                PTmatrix[,j] <- Matrix::Matrix(PT, sparse=T)
+            }
         }
-        PTmatrix <- colNorm(PTmatrix) 
-        PTmatrix <- Matrix::Matrix(PTmatrix, sparse=T)
-        rownames(PTmatrix) <- rownames(P0matrix)
-        colnames(PTmatrix) <- colnames(P0matrix)
-        
-        endT <- Sys.time()
-        runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
-        message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
-        
-        invisible(PTmatrix)
- 
+    }
+    if(verbose){
+        now <- Sys.time()
+        message(sprintf("Rescaling steady probability vector (%s) ...", as.character(now)), appendLF=T)
+    }
+    PTmatrix <- colNorm(PTmatrix) 
+    PTmatrix <- Matrix::Matrix(PTmatrix, sparse=T)
+    rownames(PTmatrix) <- rownames(P0matrix)
+    colnames(PTmatrix) <- colnames(P0matrix)
+    
+    endT <- Sys.time()
+    runTime <- as.numeric(difftime(strptime(endT, "%Y-%m-%d %H:%M:%S"), strptime(startT, "%Y-%m-%d %H:%M:%S"), units="secs"))
+    message(paste(c("Runtime in total is: ",runTime," secs\n"), collapse=""), appendLF=T)
+    
+    invisible(PTmatrix)
+    
 }    
 
 
@@ -369,17 +369,17 @@ nbiNet <- function (A, alpha=0.5, lamda=0.5, s1=NA, s2=NA,format = c("igraph","m
 #' S1 = enzyme_Gsim
 #' g1 = graph.incidence(A)
 #' M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8, 
-#'                 parallel=FALSE, multicores=NULL, verbose=T,weight=FALSE)
+#'                 parallel=FALSE, verbose=T,weight=FALSE)
 #' dataF<- read.csv("seedFile.csv",header=FALSE)
 #' Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
-#'                  parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+#'                  parallel=TRUE,verbose=T,weight=FALSE)
 #' }
 #' @export
 
 biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NULL,restart=0.8,verbose=T,weight=FALSE) {
     
     startT <- Sys.time()
-
+    
     if (!exists('s1') || !exists('s2')){
         stop("You must submit s1 and s2 matrices.\n")
     }
@@ -404,12 +404,12 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NU
     }
     normalise <- match.arg(normalise)
     if (weight){
-    if ("weight" %in% list.edge.attributes(g1)){
-        adjM <- get.incidence(g1, attr="weight", names=T)
-        if(verbose){
-            message(sprintf("Notes: using weighted graph!"), appendLF=T)
+        if ("weight" %in% list.edge.attributes(g1)){
+            adjM <- get.incidence(g1, attr="weight", names=T)
+            if(verbose){
+                message(sprintf("Notes: using weighted graph!"), appendLF=T)
+            }
         }
-    }
     }else{
         adjM <- get.incidence(g1, attr=NULL, names=T)
         if(verbose){
@@ -463,7 +463,6 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NU
             now <- Sys.time()
             message(sprintf("Rescaling steady probability vector (%s) ...", as.character(now)), appendLF=T)
         }
-        
         rmat[rmat < 1e-06] <- 0
         rmat <- rmat[1:nrow(adjM),]
         
@@ -719,7 +718,7 @@ netCombo <- function(g1,s1,s2,nbi.alpha=0.4,nbi.lamda=0.5,norm="laplace",restart
     message(sprintf("Running computation for RWR..\n"))
     Q1 = biNetwalk(g1,s1=s1,s2=s2,normalise="laplace",verbose=T,restart = restart)
     
-
+    
     message(sprintf("Running computation for network based inference..\n"))
     Q2 = nbiNet(A,lamda=nbi.lamda,alpha=nbi.alpha,s1=as.matrix(s1),s2=as.matrix(s2),format = "matrix")
     
@@ -800,7 +799,7 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
     if (totallinks <= relinks){
         stop("Total links removed is less than equal given links to be removes. Give a sensible value.")
     }
-        
+    
     SampledGraph <- g1
     for (i in 1:dim(re)[1])
     {
@@ -813,9 +812,9 @@ net.perf<- function(A,S1,S2,restart=0.8,alpha=0.5,lamda=0.5,relinks=100,numT=2,n
     #Sg_t <- randomizeMatrix(Sg_t,null.model = "frequency",iterations = 1000)
     
     #mat<-tMat(Sg_t,as.matrix(S1),as.matrix(S2),normalise="laplace")
-
+    
     drugs <- re[,2]
-
+    
     message(sprintf("Detected (%s) drugs & (%s) proteins with (%s) interactions...",n,m,totallinks))
     message(sprintf("Running prediction for (%s) links removed using (%s) .. ",as.character(relinks),as.character(algo)))
     

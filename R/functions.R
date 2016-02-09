@@ -208,49 +208,28 @@ tMat <- function(g1,s1,s2,normalise="chen"){
 ## to get better results with different datasets one needs to tune restart parameter r.
 
 rwr <- function(W,P0matrix,r=0.9){
-    # run on sparse matrix package
-    #flag_parallel <- F
-    cl <- makeCluster(detectCores())
-    registerDoParallel(cl)
     stop_delta <- 1e-07     
-        
-        message(paste(c("Executing RWR in parallel way .. \n")))
-        PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
-        pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
-        j = 1
-        PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine='cbind'), {
-            setTxtProgressBar(pb, j)
-            P0 <- P0matrix[,j]
-            ## Initializing variables
-            delta <- 1
-            PT <- P0
-            ## Iterative update till convergence (delta<=1e-7)
-            while (delta>stop_delta){
-                PX <- (1-r) * t(W) %*% PT + r * P0
-                delta <- sum(abs(PX-PT))
-                PT <- PX
-            }
-            as.matrix(PT)
-        })
-        
-#         pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
-#         for(j in 1:ncol(P0matrix)){
-#             P0 <- P0matrix[,j]
-#             PT <- P0
-#             delta <- 1
-#             setTxtProgressBar(pb, j)
-#             while (delta > stop_delta){
-#                 Tr <- suppressWarnings(snow::parMM(cl,t(W),PT))
-#                 PX <- (1-r) * Tr + r * P0
-#                 # p-norm of v: sum((abs(v).p)^(1/p))
-#                 delta <- sum(abs(PX-PT))
-#                 PT <- PX
-#             }
-#             PTmatrix[,j] <- matrix(PT)
-#         }
-        return(PTmatrix)
-        stopCluster(cl)
-
+    
+    message(paste(c("Executing RWR in parallel way .. \n")))
+    PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
+    pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
+    j = 1
+    PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine='cbind'), {
+        setTxtProgressBar(pb, j)
+        P0 <- P0matrix[,j]
+        ## Initializing variables
+        delta <- 1
+        PT <- P0
+        ## Iterative update till convergence (delta<=1e-7)
+        while (delta>stop_delta){
+            PX <- (1-r) * t(W) %*% PT + r * P0
+            delta <- sum(abs(PX-PT))
+            PT <- PX
+        }
+        as.matrix(PT)
+    })
+    return(PTmatrix)
+    
 }
 
 #' Get the communities in a graph

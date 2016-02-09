@@ -14,7 +14,7 @@ biNetwalk(g1, s1, s2, normalise = c("laplace", "none", "chen"),
 
 \item{s2}{Accepts a matrix object similarity scores for compounds.}
 
-\item{normalise}{Normalisation of matrix using laplacian or None(the transition matrix will be column normalized)}
+\item{normalise}{Normalisation of matrix using laplacian, Chen, None(the transition matrix will be column normalized)}
 
 \item{dataSeed}{seeds file}
 
@@ -33,10 +33,10 @@ S2 = enzyme_Csim
 S1 = enzyme_Gsim
 g1 = graph.incidence(A)
 M3 <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=NULL,restart=0.8,
-                parallel=FALSE, multicores=NULL, verbose=T,weight=FALSE)
+                parallel=FALSE, verbose=T,weight=FALSE)
 dataF<- read.csv("seedFile.csv",header=FALSE)
 Mat <- biNetwalk(g1,s1=S1,s2=S2,normalise="laplace", dataSeed=dataF,restart=0.8,
-                 parallel=TRUE, multicores=NULL, verbose=T,weight=FALSE)
+                 parallel=TRUE,verbose=T,weight=FALSE)
 }
 }
 \references{
