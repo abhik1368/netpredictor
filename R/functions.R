@@ -209,7 +209,7 @@ tMat <- function(g1,s1,s2,normalise="chen"){
 
 rwr <- function(W,P0matrix,r=0.9){
     
-    stop_delta <- 1e-07     
+    stop_step <- 50     
     library(foreach)
     library(doParallel)
     registerDoParallel(detectCores())  
