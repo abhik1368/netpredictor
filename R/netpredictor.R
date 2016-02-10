@@ -419,7 +419,6 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NU
     adjM <- as.matrix(adjM)
     # get the transition matrix
     W = tMat(adjM,s1,s2,normalise=normalise)
-    print(dim(W))
     message(sprintf("got the transition matrix for RWR"))
     if(is.null(dataSeed)){
         
@@ -453,9 +452,7 @@ biNetwalk <- function(g1,s1,s2,normalise=c("laplace","none","chen"), dataSeed=NU
    
     
     if (exists("W")){
-        print(dim(P0matrix))
         rmat <- rwr(W,P0matrix,r=c)
-        print (dim(rmat))
     } else{
         stop("Transition matrix couldnt be generated..")
     }
