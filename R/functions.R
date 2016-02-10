@@ -199,7 +199,7 @@ tMat <- function(g1,s1,s2,normalise="chen"){
         # Returning the final matrix 
         return(as.matrix(M))
     }
-    stopCluster(cl)
+    on.exit(stopCluster(cl))
 }
 
 ## performing random walk with restart both in parallel and non-parallel way.
@@ -208,26 +208,34 @@ tMat <- function(g1,s1,s2,normalise="chen"){
 ## to get better results with different datasets one needs to tune restart parameter r.
 
 rwr <- function(W,P0matrix,r=0.9){
-    stop_delta <- 1e-07     
     
+    stop_delta <- 1e-07     
+    library(foreach)
+    library(doParallel)
+    registerDoParallel(detectCores())  
     message(paste(c("Executing RWR in parallel way .. \n")))
     PTmatrix <- matrix(0, nrow=nrow(P0matrix), ncol=ncol(P0matrix))
     pb <- txtProgressBar(min = 1, max = ncol(P0matrix), style = 3)
+    #flag = dCheckParallel(multicores = 4,verbose = T)
+    #if (flag){
     j = 1
-    PTmatrix <- foreach::`%dopar%` (foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine='cbind'), {
+    PTmatrix <- foreach::foreach(j=1:ncol(P0matrix), .inorder=T, .combine='cbind') %dopar% {
         setTxtProgressBar(pb, j)
         P0 <- P0matrix[,j]
         ## Initializing variables
-        delta <- 1
+        step <- 0
         PT <- P0
         ## Iterative update till convergence (delta<=1e-7)
-        while (delta>stop_delta){
+        while (step<=stop_step){
             PX <- (1-r) * t(W) %*% PT + r * P0
             delta <- sum(abs(PX-PT))
             PT <- PX
+            step <- step+1
         }
         as.matrix(PT)
-    })
+    }
+    
+    
     return(PTmatrix)
     
 }
